@@ -2,7 +2,7 @@
 
 Get some basic statistics from your chat log files.
 
-When you first get started you'll see the below box with the file uploads and settings to choose from.
+When you first get started you'll see the below box with the file uploads and settings to choose from with an empty output below. The statistics outputed are message counts in each of the chats, Player ID, and names associated with the Player ID.
 
 ![Example 1](example1.png)
 
