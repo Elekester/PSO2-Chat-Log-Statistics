@@ -1,0 +1,74 @@
+<html lang="en" >
+	<head>
+		<meta charset="utf-8" />
+		<title>Chat Log Statistics</title>
+		<link href="style.css" rel="stylesheet" type="text/css" />
+		<script src="script.js"></script>
+	</head>
+	<body>
+	<div class="container">
+		<h1>Chat Log Statistics</h1>
+		<div>
+			<p>You may select any number of files in the log or log_ngs folders in your PSO2 documents directory (same place that PSO2 stores native screenshots). Files that aren't chat logs or symbol chat logs are skipped.</p>
+			<p>The filter file is a plain text document containing names  separated by a new line, tab, or comma. The results are limited to just those players whose name is in the filter. You may also filter using a range of dates.</p>
+			<p>The output can be sorted by name, Player ID, or by message count.</p>
+		</div>
+		<div class="bordered">
+			<div>
+				<label for="chat_log_files">Select chat log files to upload:</label>
+				<input type="file" name="chat_log_files" id="chat_log_files" accept=".txt" onchange="Player.file_change = true;" multiple />
+			</div>
+			<div>
+				<label for="filter_file">Select an optional filter file to upload:</label>
+				<input type="file" name="filter_file" id="filter_file" accept=".txt" onchange="Player.file_change = true;" />
+			</div>
+			<div>
+				<label for="filter_cutoff">Select a sensitivity for name differences:</label>
+				<input type="number" name="filter_cutoff" id="filter_cutoff" min="0" max="1" value="0.8" step="0.05" onchange="Player.file_change = true;" />
+			</div>
+			<div>
+				<label>Select a range of dates to filter by:</label>
+				<input type="date" id="date_start" name="date_start" value="2012-07-04" min="2012-07-04" onchange="Player.file_change = true;" />
+				<input type="date" id="date_end" name="date_end" value="9999-12-31" min="2012-07-04" onchange="Player.file_change = true;" />
+			</div>
+			<div>
+				<label for="sort_method">Select a sorting method:</label>
+				<select name="sort_method" id="sort_method">
+					<optgroup label="Meta">
+						<option value="alphabetically">Alphabetically by name</option>
+						<option value="id">Player ID</option>
+					</optgroup>
+					<optgroup label="Message Count">
+						<option value="TOTAL_chat_count">Total</option>
+						<option value="PUBLIC_chat_count">Area (Public)</option>
+						<option value="PARTY_chat_count">Party (Party)</option>
+						<option value="GUILD_chat_count">Alliance (Guild)</option>
+						<option value="REPLY_chat_count">Whisper (Reply)</option>
+						<option value="GROUP_chat_count">Group (Group)</option>
+					</optgroup>
+				</select>
+			</div>
+			<div>
+				<button name="calculate_button" type="button" onclick="display();">Calculate Statistics</button>
+				<label for="calculate_button" id="calculate_button_label"></label>
+			</div>
+		</div>
+		<div>
+			<h2>Output</h2>
+			<table id="output">
+				<tbody>
+					<tr>
+						<th>Total</th>
+						<th>Public</th>
+						<th>Party</th>
+						<th>Guild</th>
+						<th>Reply</th>
+						<th>Group</th>
+						<th>ID</th>
+						<th>Names</th>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</body>
+</html>
