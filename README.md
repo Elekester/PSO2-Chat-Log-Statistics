@@ -2,4 +2,4 @@
 
 Get some basic statistics from your chat log files.
 
-[](example1.png)
+![Example 1](example1.png)
