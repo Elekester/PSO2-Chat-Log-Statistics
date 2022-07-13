@@ -161,7 +161,7 @@ function similarity(s1, s2) {
 window.addEventListener('load', () => {
 	let today = new Date().toISOString().slice(0,10);
 	let two_weeks_ago = new Date();
-	two_weeks_ago.setDate(two_weeks_ago.getDate()-14)
+	two_weeks_ago.setDate(two_weeks_ago.getDate()-28)
 	two_weeks_ago = two_weeks_ago.toISOString().slice(0,10);
 	document.getElementById('date_end').max = today;
 	document.getElementById('date_start').max = today;
