@@ -19,9 +19,16 @@ class Player {
 
 async function calculate() {
 	let input = document.getElementById('chat_log_files').files;
+	
 	let name_filter = (await document.getElementById('filter_file').files[0]?.text() ?? '');
 	let name_filter_check = name_filter === '' ? false : true;
 	name_filter = name_filter.split(/[\t\n\r,]+/);
+	
+	let message_filter = document.getElementById('filter_message').value;
+	let message_filter_check = message_filter === '' ? false : true;
+	if (message_filter_check && /^\/.*\/[gimsuy]*$/.test(message_filter)) {message_filter = new RegExp(/(?<=^\/).*(?=\/[gimsuy]*$)/.exec(message_filter)[0], /(?<=^\/.*\/)[gimsuy]*$/g.exec(message_filter)[0])}
+	else if (message_filter_check) {message_filter = new RegExp(message_filter, 'i');}
+	
 	let date_start = Date.parse(document.getElementById('date_start').value);
 	let date_end = Date.parse(document.getElementById('date_end').value);
 	
@@ -34,7 +41,7 @@ async function calculate() {
 		const array = value.replace(/\r/g,'').split('\n');
 		for (const elem of array) {
 			message = elem.split('\t');
-			if (message[0] === '' || !message?.[3] || !message?.[4]) continue; /* Check for a message that contains no timestamp or Player ID or name. We'll skip those. */
+			if (message[0] === '' || !message?.[3] || !message?.[4] || !message?.[5]) continue; /* Check for a message that contains no timestamp or Player ID or name or content. We'll skip those. */
 			
 			/* Apply the filters. */
 			let date_message = Date.parse(message[0].slice(0,10));
@@ -50,6 +57,7 @@ async function calculate() {
 				}
 				if (!flag) continue;
 			}
+			if (message_filter_check && !message_filter.test(message[5])) continue;
 			
 			if (!player_ids.includes(message[3])) {
 				player_ids.push(message[3]);
