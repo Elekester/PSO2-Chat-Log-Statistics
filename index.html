@@ -12,7 +12,7 @@
 			<p>You may select any number of files in the log or log_ngs folders in your PSO2 documents directory (same place that PSO2 stores native screenshots). Files that aren't chat logs or symbol chat logs are skipped.</p>
 			<p>The name filter file is a plain text document containing names  separated by a new line, tab, or comma. The results are limited to just those players whose name is in the filter, with a setting for allowing spelling mistakes. You can filter by message content by either matching a (case insensitive) string or a regular expression. You may also filter using a range of dates.</p>
 			<p>The output can be sorted by name, Player ID, or by message count.</p>
-			<p>See the <a href="https://github.com/Elekester/PSO2-Chat-Log-Statistics/">github repo</a> for more information and the source code.</p>
+			<p>See the <a href="https://github.com/Elekester/PSO2-Chat-Log-Statistics/">GitHub Repository</a> for the source code.</p>
 		</div>
 		<div class="bordered">
 			<div>
@@ -28,7 +28,7 @@
 				<input type="number" name="filter_cutoff" id="filter_cutoff" min="0" max="1" value="0.8" step="0.05" onchange="Player.file_change = true;" />
 			</div>
 			<div>
-				<label for="filter_message">Message Filter (RegEx supported):</label>
+				<label for="filter_message">Message filter (RegEx supported):</label>
 				<input type="text" name="filter_message" id="filter_message" onchange="Player.file_change = true;" />
 			</div>
 			<div>
