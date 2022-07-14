@@ -46,6 +46,7 @@ async function calculate() {
 			/* Apply the filters. */
 			let date_message = Date.parse(message[0].slice(0,10));
 			if (date_message <= date_start || date_message >= date_end) continue; /* Date filter. */
+			if (message_filter_check && !message_filter.test(message[5])) continue; /* Message filter. */
 			if (name_filter_check && !player_ids.includes(message[3])) { /* Name filter. If Player ID is already associated with an name that passed the filter, ignore the filter.*/
 				let filter_cutoff = document.getElementById('filter_cutoff').value;
 				let flag = false;
@@ -57,7 +58,6 @@ async function calculate() {
 				}
 				if (!flag) continue;
 			}
-			if (message_filter_check && !message_filter.test(message[5])) continue;
 			
 			if (!player_ids.includes(message[3])) {
 				player_ids.push(message[3]);
