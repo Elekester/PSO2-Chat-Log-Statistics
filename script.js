@@ -1,3 +1,25 @@
+/*
+Upload chat logs
+ -> immediately create known player ID list, that way we have all names associated with the player ID.
+ -> This probably requires already splitting up the messages so do that.
+ -> This time make messages use classes and add filter properties for each filter.
+
+Upload/Change filter
+ -> Update each message's property based only on that filter.
+ -> It might be time efficient to have a stored array of messages that match the filter and an array of messages that don't. I'm not sure yet.
+ -> Definitely have an array for the filtered list of messages.
+ -> Updating the filters will mess with the message counts, so figure out where to actually store those. Put this all in a single object to not pollute the name space?
+ 
+Change Sort
+ -> Sort only the filtered list.
+
+For everything it's probably best to disable buttons and input changes while we're performing operations on them. Add a dedicated status area to indicate what's happening. This might be the output.
+
+Long term I'd like to be able to click on a name and see the messages they've sent.
+
+For the filters, create radio buttons to apply the filters or not along with their input lines.
+*/
+
 class Player {
 	constructor(id) {
 		this.id = id;
@@ -15,6 +37,16 @@ class Player {
 	
 	static temp_players = [];
 	static file_change = false;
+}
+
+class Message {
+	constructor(time, chat, playerId, name, text) {
+		this.time = time;
+		this.chat = chat;
+		this.playerId = playerId;
+		this.name = name;
+		this.text = text;
+	}
 }
 
 async function calculate() {
