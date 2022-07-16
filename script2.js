@@ -23,6 +23,7 @@ ChatStats.Message = class Message {
 	}
 }
 
+// Data Storages
 ChatStats.known_players = [];
 ChatStats.known_player_ids = [];
 ChatStats.messages = [];
@@ -69,5 +70,65 @@ ChatStats.upload_logs = async function () {
 				player.names.sort();
 			}
 		}
+	}
+}
+
+ChatStats.player_filter_change = function() {
+	// Go through messages and mark those with a player associated to a filter name or Player ID as true and those who aren't as false. Remember to use the Sensitivity setting and edit distance.
+}
+
+ChatStats.message_filter_change = function() {
+	// Go through the messages and mark those that pass the message filter as true, otherwise false.
+}
+
+ChatStats.date_filter_change = function() {
+	// Go through the messages and mark those that are between the dates.
+}
+
+ChatStats.display = function() {
+	let players = ChatStats.known_players;
+	let sort_method = document.getElementById('sort_method').value;
+	
+	// Sort the Player list.
+	if (sort_method === 'alphabetically') {
+		players.sort((a, b) => {
+			if (a?.names[0] && b?.names[0]) {return a.names[0].localeCompare(b.names[0], undefined, {sensitivity: 'base'});}
+			else {return 0;}
+		});
+	} else if (sort_method.includes('_chat_count')) {
+		let chat = sort_method.split('_', 1)[0];
+		// players.sort((a, b) => {
+			// if (!(isNaN(a?.chats?.[chat]) && isNaN(b?.chats?.[chat]))) {return b.chats[chat] - a.chats[chat];}
+			// else {return 0;}
+		// });
+	} else if (sort_method === 'id') {
+		players.sort((a, b) => {
+			if (a?.id && b?.id) {return a.id - b.id;}
+			else {return 0;}
+		});
+	}
+	
+	// Reset the Output Display
+	let output = document.getElementById('output').children[0];
+	for (let i = output.children.length - 1; i > 0; i--) {
+		output.children[i].remove();
+	}
+	
+	// Populate the Output Display
+	for (const player of players) {
+		let newRow = document.createElement('tr');
+		for (const chat of ['TOTAL', 'PUBLIC', 'PARTY', 'GUILD', 'REPLY', 'GROUP']) {
+			let newCell = document.createElement('td');
+			newCell.innerText = 0;
+			newRow.appendChild(newCell);
+		}
+		let player_id = document.createElement('td');
+		player_id.innerText = player.id;
+		newRow.appendChild(player_id);
+		let player_names = document.createElement('td');
+		player_names.innerText = player.names.join(', ');
+		newRow.appendChild(player_names);
+		
+		output.appendChild(newRow);
 	}
 }
