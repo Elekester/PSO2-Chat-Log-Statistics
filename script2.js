@@ -47,7 +47,7 @@ ChatStats.upload_logs = async function () {
 			const message_split = message_original.split('\t');
 			
 			// Skip any messages that are missing data.
-			if (!message_split?.[0] || !message_split?.[1] || !message_split?.[2] || !message_split?.[3] || !message_split?.[4] || !message_split?.[5] || message_split[0] === '') {
+			if (!message_split?.[0] || !message_split?.[1] || !message_split?.[2] || !message_split?.[3] || !message_split?.[4] || !message_split?.[5]) {
 				continue;
 			}
 			
