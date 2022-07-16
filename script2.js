@@ -16,10 +16,14 @@ ChatStats.Message = class Message {
 		this.name = name;
 		this.content = content;
 		this.filter = {
-			player: true,
+			name: true,
 			content: true,
 			date: true
 		}
+	}
+	
+	get filtered() {
+		return Object.values(this.filter).reduce((prev, curr) => prev && curr, true);
 	}
 }
 
@@ -73,40 +77,56 @@ ChatStats.upload_logs = async function () {
 	}
 }
 
-ChatStats.player_filter_change = function() {
-	// Go through messages and mark those with a player associated to a filter name or Player ID as true and those who aren't as false. Remember to use the Sensitivity setting and edit distance.
+ChatStats.name_filter_change = async function() {
+	let name_filter = (await document.getElementById('filter_file').files[0]?.text() ?? '');
+	if (name_filter === '') {
+		return;
+	}
+	name_filter = name_filter.split(/[\t\n\r,]+/);
+	let filter_cutoff = document.getElementById('filter_cutoff').value;
+	for (let player of ChatStats.known_players) {
+		let flag = false;
+		for (const name of name_filter) {
+			for (const player_name of player.names) {
+				if (similarity(name, player_name) >= filter_cutoff) {
+					flag = true;
+					break;
+				}
+			}
+			if (flag) break;
+		}
+		for (let message of player.messages) {
+			message.filter.name = flag;
+		}
+	}
 }
 
 ChatStats.message_filter_change = function() {
-	// Go through the messages and mark those that pass the message filter as true, otherwise false.
+	let message_filter = document.getElementById('filter_message').value;
+	if (message_filter === '') {
+		return;
+	} else if (/^\/.*\/[gimsuy]*$/.test(message_filter)) {
+		message_filter = new RegExp(/(?<=^\/).*(?=\/[gimsuy]*$)/.exec(message_filter)[0], /(?<=^\/.*\/)[gimsuy]*$/g.exec(message_filter)[0])
+	} else {
+		message_filter = new RegExp(message_filter, 'i');
+	}
+	
+	for (let message of ChatStats.messages) {
+		message.filter.content = message_filter.test(message.content);
+	}
 }
 
 ChatStats.date_filter_change = function() {
-	// Go through the messages and mark those that are between the dates.
+	let date_start = Date.parse(document.getElementById('date_start').value);
+	let date_end = Date.parse(document.getElementById('date_end').value) + 86400000; // Add a day in ms to adjust for inclusivity.
+	for (let message of ChatStats.messages) {
+		let date_message = Date.parse(message.time);
+		if (date_message <= date_start || date_message >= date_end) message.filter.date = false;
+	}
 }
 
 ChatStats.display = function() {
 	let players = ChatStats.known_players;
-	let sort_method = document.getElementById('sort_method').value;
-	
-	// Sort the Player list.
-	if (sort_method === 'alphabetically') {
-		players.sort((a, b) => {
-			if (a?.names[0] && b?.names[0]) {return a.names[0].localeCompare(b.names[0], undefined, {sensitivity: 'base'});}
-			else {return 0;}
-		});
-	} else if (sort_method.includes('_chat_count')) {
-		let chat = sort_method.split('_', 1)[0];
-		// players.sort((a, b) => {
-			// if (!(isNaN(a?.chats?.[chat]) && isNaN(b?.chats?.[chat]))) {return b.chats[chat] - a.chats[chat];}
-			// else {return 0;}
-		// });
-	} else if (sort_method === 'id') {
-		players.sort((a, b) => {
-			if (a?.id && b?.id) {return a.id - b.id;}
-			else {return 0;}
-		});
-	}
 	
 	// Reset the Output Display
 	let output = document.getElementById('output').children[0];
@@ -116,10 +136,33 @@ ChatStats.display = function() {
 	
 	// Populate the Output Display
 	for (const player of players) {
+		
+		// Count a player's messages.
+		let message_count = {
+			TOTAL: 0,
+			PUBLIC: 0,
+			PARTY: 0,
+			GUILD: 0,
+			REPLY: 0,
+			GROUP: 0
+		}
+		
+		for (const message of player.messages) {
+			// Don't count filtered messages.
+			if (!message.filtered) continue;
+			
+			message_count.TOTAL++;
+			message_count[message.chat]++;
+		}
+		
+		// If a player's total filtered message count is 0. Don't add it to the output.
+		if (message_count.TOTAL === 0) continue;
+		
+		// Populate a player's row.
 		let newRow = document.createElement('tr');
 		for (const chat of ['TOTAL', 'PUBLIC', 'PARTY', 'GUILD', 'REPLY', 'GROUP']) {
 			let newCell = document.createElement('td');
-			newCell.innerText = 0;
+			newCell.innerText = message_count[chat];
 			newRow.appendChild(newCell);
 		}
 		let player_id = document.createElement('td');
@@ -132,3 +175,14 @@ ChatStats.display = function() {
 		output.appendChild(newRow);
 	}
 }
+
+window.addEventListener('load', () => {
+	let today = new Date().toISOString().slice(0,10);
+	let two_weeks_ago = new Date();
+	two_weeks_ago.setDate(two_weeks_ago.getDate()-28)
+	two_weeks_ago = two_weeks_ago.toISOString().slice(0,10);
+	document.getElementById('date_end').max = today;
+	document.getElementById('date_start').max = today;
+	document.getElementById('date_end').value = today;
+	document.getElementById('date_start').value = two_weeks_ago;
+});
