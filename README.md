@@ -4,7 +4,7 @@ Get some basic statistics from your chat log files, like total message count or 
 
 When you first get started you'll see the below box with the file uploads and settings to choose from with an empty output below.
 
-![Example 1](images/options_menu.png)
+![Options Menu Example](images/options_menu.png)
 
 1. You may select any number of files in the log or log_ngs folders in your PSO2 documents directory (same place that PSO2 stores native screenshots) to upload here. Files that aren't chat logs or symbol chat logs are simply skipped.
 2. You can upload an optional name filter file here. More details on that below.
@@ -13,9 +13,11 @@ When you first get started you'll see the below box with the file uploads and se
 5. You can select a date range and only messages from within the range (inclusive) will be counted for the statistics.
 6. Hit this button to calculate everything.
 
+## 1. Chat Log Files Upload
+
 You can simply select all the files in your PSO2's log or log_ngs folders for your chat logs.
 
-![Example 2](images/file_select.png)
+![File Selecting Example](images/file_select.png)
 
 The filter file will look something like this, with a list of names that are comma, tab, or newline separated. The results will be filtered by players with names on this list. The sensitivity setting allows for names to not be an exact match in case your worried about misspellings.
 
