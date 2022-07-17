@@ -41,4 +41,10 @@ The results may also be filtered by message date. By default this is set to only
 
 ### 6. Calculate Button
 
-Hit this button to calculate everything.
+Hit this button to calculate the statistics for the uploaded chat logs with the given filters. The results will be displayed below in the Output, unsorted.
+
+## Output Table
+
+Your data will be displayed in a table like the example below. Clicking on a header will sort the table by that column. Clicking it again will reverse the sort.
+
+![Output Example](images/output.png)
