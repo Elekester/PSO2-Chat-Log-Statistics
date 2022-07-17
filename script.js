@@ -92,7 +92,7 @@ ChatStats.helpers.similarity = function (string_1, string_2) {
 	return (length - ChatStats.helpers.levenshtein_distance(longer, shorter)) / parseFloat(length);
 }
 
-ChatStats.helpers.disable_input = function (promise) {
+ChatStats.helpers.disable_input = function () {
 	let inputs = document.getElementsByTagName('input');
 	for (let input of inputs) {
 		input.disabled = true;
@@ -101,7 +101,7 @@ ChatStats.helpers.disable_input = function (promise) {
 	ChatStats.helpers.input_is_disabled = true;
 }
 
-ChatStats.helpers.enable_input = function (promise) {
+ChatStats.helpers.enable_input = function () {
 	let inputs = document.getElementsByTagName('input');
 	for (let input of inputs) {
 		input.disabled = false;
@@ -325,7 +325,7 @@ ChatStats.sort = {};
 ChatStats.sort.ascending = 1;
 ChatStats.sort.column_index = 7;
 
-ChatStats.sort.output = function(e) {
+ChatStats.sort.output = function() {
 	if (ChatStats.helpers.input_is_disabled) {
 		return;
 	}
@@ -336,12 +336,7 @@ ChatStats.sort.output = function(e) {
 	
 	// Figure out the sort direction and the index of the column to sort by.
 	let ascending = ChatStats.sort.ascending;
-	let column_index;
-	if (e) {
-		column_index = [...output.rows[0].children].indexOf(this);
-	} else {
-		column_index = ChatStats.sort.column_index;
-	}
+	let column_index = [...output.rows[0].children].indexOf(this);
 	if (ChatStats.sort.column_index === column_index) {
 		ascending = -1 * ascending;
 	} else if (column_index < 6) {
