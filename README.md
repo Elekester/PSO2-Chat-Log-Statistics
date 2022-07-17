@@ -48,3 +48,14 @@ Hit this button to calculate the statistics for the uploaded chat logs with the 
 Your data will be displayed in a table like the example below. Clicking on a header will sort the table by that column. Clicking it again will reverse the sort.
 
 ![Output Example](images/output.png)
+
+The column names are derived from the internal names for each of the chats.
+
+* The Total column displays the total message count for each player.
+* The Public column displays the Area message count for each player.
+* The Party column displays the Party message count for each player.
+* The Guild column displays the Alliance Message Count for each player.
+* The Reply column displays the Whisper Message Count for each player.
+* The Group column displays the Group Message Count for each player.
+* The Player ID column displays the unique number associated to each player's account.
+* The Names column displays the Player Names and Character Names associated to each player's account.
