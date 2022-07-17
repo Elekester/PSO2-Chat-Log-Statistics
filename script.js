@@ -313,6 +313,17 @@ ChatStats.display = function() {
 	ChatStats.sort.ascending = 1;
 	ChatStats.sort.column_index = 7;
 	
+	// Create a downloadable version of the output.
+	let csv_content = 'data:text/csv;charset=utf-9,';
+	[...output.rows].forEach(row => {
+		let temp_row = [...row.cells].map(cell => cell.innerText);
+		csv_content += '"' + temp_row.join('","') + '"\r\n';
+	});
+	let encoded_csv = encodeURI(csv_content);
+	let download_link = document.getElementById('download');
+	download_link.href = encoded_csv;
+	download_link.download = 'ChatLogStatistics' + new Date().toISOString().slice(0,10).replaceAll('-','') + '.csv';
+	
 	ChatStats.helpers.enable_input();
 }
 
