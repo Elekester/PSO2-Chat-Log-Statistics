@@ -14,6 +14,10 @@
 				<input type="file" name="chat_log_files" id="chat_log_files" accept=".txt" onchange="ChatStats.chat_logs_change();" multiple />
 			</div>
 			<div>
+				<label for="id_filter_file">Select an optional Player ID filter file to upload:</label>
+				<input type="file" name="id_filter_file" id="id_filter_file" accept=".txt" onchange="ChatStats.id_filter_change();" disabled />
+			</div>
+			<div>
 				<label for="name_filter_file">Select an optional name filter file to upload:</label>
 				<input type="file" name="name_filter_file" id="name_filter_file" accept=".txt" onchange="ChatStats.name_filter_change();" disabled />
 			</div>

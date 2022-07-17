@@ -29,6 +29,7 @@ ChatStats.classes.Message = class Message {
 		this.name = name;
 		this.content = content;
 		this.filter = {
+			id: true,
 			name: true,
 			content: true,
 			date: true
@@ -177,10 +178,37 @@ ChatStats.chat_logs_change = async function () {
 	
 	// If things have been done in the wrong order, run the filters now.
 	if (ChatStats.helpers.filters_flag) {
+		await ChatStats.id_filter_change();
 		await ChatStats.name_filter_change();
 		ChatStats.message_filter_change();
 		ChatStats.date_filter_change();
 		
+	}
+	
+	ChatStats.helpers.enable_input();
+}
+
+ChatStats.id_filter_change = async function() {
+	ChatStats.helpers.disable_input();
+	
+	let id_filter = (await document.getElementById('id_filter_file').files[0]?.text() ?? '');
+	if (id_filter === '') {
+		for (let message of ChatStats.messages) {
+			message.filter.id = true;
+		}
+		ChatStats.helpers.enable_input();
+		return;
+	}
+	id_filter = id_filter.split(/[\t\n\r,]+/);
+	console.log(id_filter);
+	for (let player of ChatStats.known_players) {
+		let flag = false;
+		if (id_filter.includes(player.id)) {
+			flag = true;
+		}
+		for (let message of player.messages) {
+			message.filter.id = flag;
+		}
 	}
 	
 	ChatStats.helpers.enable_input();
