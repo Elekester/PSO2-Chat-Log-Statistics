@@ -37,6 +37,10 @@ th {
 	background: #e2e2e2;
 }
 
+th:hover {
+	cursor: pointer;
+}
+
 tr:nth-child(even) {
 	background-color: #f2f2f2;
 }
