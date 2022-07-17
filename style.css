@@ -39,6 +39,7 @@ th {
 
 th:hover {
 	cursor: pointer;
+	background: #d2d2d2;
 }
 
 tr:nth-child(even) {
