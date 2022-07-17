@@ -323,6 +323,7 @@ ChatStats.display = function() {
 	let download_link = document.getElementById('download');
 	download_link.href = encoded_csv;
 	download_link.download = 'ChatLogStatistics' + new Date().toISOString().slice(0,10).replaceAll('-','') + '.csv';
+	document.getElementById('download_button').disabled = false;
 	
 	ChatStats.helpers.enable_input();
 }

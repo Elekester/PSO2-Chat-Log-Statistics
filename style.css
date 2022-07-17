@@ -21,11 +21,6 @@ body{
 	padding: 0.1px 1in;
 }
 
-#download {
-	color: inherit;
-	text-decoration: inherit;
-}
-
 table {
 	border-collapse: collapse;
 	font-size: smaller;
