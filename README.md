@@ -1,10 +1,8 @@
-# PSO2 Chat Log Statistics
+# PSO2 Chat Log Statistics User Manual
 
 Get some basic statistics from your PSO2 chat log files, including a player's message counts for each chat.
 
-Visit the site at https://elekester.github.io/PSO2-Chat-Log-Statistics/
-
-# User Manual
+Visit the site at: https://elekester.github.io/PSO2-Chat-Log-Statistics/
 
 ## File Upload and Settings Menu
 
