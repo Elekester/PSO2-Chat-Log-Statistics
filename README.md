@@ -1,4 +1,4 @@
-![Shields.io Release Badge](https://img.shields.io/github/v/release/Elekester/PSO2-Chat-Log-Statistics)
+![Shields.io Release Badge](https://img.shields.io/github/v/release/elekester/pso2-chat-log-statistics)
 
 Get some basic statistics from your PSO2 chat log files, including a player's message counts for each chat.
 
