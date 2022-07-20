@@ -76,3 +76,4 @@ The column names are derived from the internal names for each of the chats.
 * The Group column displays the Group Message Count for each player.
 * The Player ID column displays the unique number associated to each player's account.
 * The Names column displays the Player Names and Character Names associated to each player's account.
+
