@@ -44,15 +44,19 @@ You can specify a sensitivity setting to allow for spelling errors in the name. 
 
 At 50 for example, Nel and Neol are treated as the same name, while at 80 they'd be two different names.
 
-### 5. Message Filter
+### 5. Name and Player ID Filter Operation
+
+If you wish to filter messages from players with a name in the Name Filter or an ID in the Player ID filter, set this to "Player must match Name OR Player ID." You may instead wish to filter only the messages from a set of Player IDs using a name, in which case set this to "Player must match Name AND Player ID". 
+
+### 6. Message Filter
 
 You can filter by message content. Only messages containing the given case-insensitive text will be included in the calculation. Alternatively you can set the message filter using a regular expression (will not work on Safari).
 
-### 6. Date Filter
+### 7. Date Filter
 
 The results may also be filtered by message date. By default this is set to only include messages from the past four weeks, but can be set to as early as PSO2's launch date.
 
-### 7. Calculate Button
+### 8. Calculate Button
 
 Hit this button to calculate the statistics for the uploaded chat logs with the given filters. The results will be displayed below in the Output, unsorted.
 

@@ -10,31 +10,46 @@
 		<h1>PSO2 Chat Log Statistics</h1>
 		<div class="bordered">
 			<div>
+				<span class="development">1</span>
 				<label for="chat_log_files">Select chat log files to upload:</label>
 				<input type="file" name="chat_log_files" id="chat_log_files" accept=".txt" onchange="ChatStats.chat_logs_change();" multiple />
 			</div>
 			<div>
+				<span class="development">2</span>
 				<label for="id_filter_file">Select an optional Player ID filter file to upload:</label>
 				<input type="file" name="id_filter_file" id="id_filter_file" accept=".txt" onchange="ChatStats.id_filter_change();" disabled />
 			</div>
 			<div>
+				<span class="development">3</span>
 				<label for="name_filter_file">Select an optional name filter file to upload:</label>
 				<input type="file" name="name_filter_file" id="name_filter_file" accept=".txt" onchange="ChatStats.name_filter_change();" disabled />
 			</div>
 			<div>
+				<span class="development">4</span>
 				<label for="name_filter_cutoff">Select a sensitivity for name differences:</label>
 				<input type="number" name="name_filter_cutoff" id="name_filter_cutoff" min="0" max="100" value="80" step="5" onchange="ChatStats.name_filter_change();" disabled />
 			</div>
 			<div>
+				<span class="development">5</span>
+				<label for="name_id_operation">Name and Player ID Filter Operation:</label>
+				<select name="name_id_operation" id="name_id_operation" onchange="ChatStats.name_id_operation_change();" disabled>
+					<option value="and">Player must match Name AND Player Id</option>
+					<option value="or">Player must match Name OR Player ID</option>
+				</select>
+			</div>
+			<div>
+				<span class="development">6</span>
 				<label for="filter_message">Message filter (RegEx supported):</label>
 				<input type="text" name="filter_message" id="filter_message" onchange="ChatStats.message_filter_change();" disabled />
 			</div>
 			<div>
+				<span class="development">7</span>
 				<label>Select a range of dates to filter by:</label>
 				<input type="date" id="date_start" name="date_start" value="2012-07-04" min="2012-07-04" onchange="ChatStats.date_filter_change();" disabled />
 				<input type="date" id="date_end" name="date_end" value="9999-12-31" min="2012-07-04" onchange="ChatStats.date_filter_change();" disabled />
 			</div>
 			<div>
+				<span class="development">8</span>
 				<button name="calculate_button" id="calculate_button" type="button" onclick="ChatStats.display();" disabled>Calculate Statistics</button>
 			</div>
 		</div>

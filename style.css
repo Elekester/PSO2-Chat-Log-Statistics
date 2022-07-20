@@ -21,6 +21,11 @@ body{
 	padding: 0.1px 1in;
 }
 
+.development {
+	color: red;
+	display: none;
+}
+
 table {
 	border-collapse: collapse;
 	font-size: smaller;

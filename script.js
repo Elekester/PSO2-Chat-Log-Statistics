@@ -1,8 +1,9 @@
 /******************************************************************************
  * Welcome to script.js, where all the magic happens.
  *
- * If you're adding a new filter, add it to the Message class and make sure
- *   that ChatStats.chat_logs_change runs it at the end if filter_flag is true.
+ * If you're adding a new filter, add it to the Message class's filter
+ *   property, its get filtered method and make sure that
+ *   ChatStats.chat_logs_change runs it at the end if filter_flag is true.
  *****************************************************************************/
 
 let ChatStats = {};
@@ -37,7 +38,13 @@ ChatStats.classes.Message = class Message {
 	}
 	
 	get filtered() {
-		return Object.values(this.filter).reduce((prev, curr) => prev && curr, true);
+		let name_id;
+		if (ChatStats.helpers.name_id_operation) {
+			name_id = this.filter.name && this.filter.id;
+		} else {
+			name_id = this.filter.name || this.filter.id;
+		}
+		return this.filter.content && this.filter.date && name_id;
 	}
 }
 
@@ -98,6 +105,7 @@ ChatStats.helpers.disable_input = function () {
 	for (let input of inputs) {
 		input.disabled = true;
 	}
+	document.getElementById('name_id_operation').disabled = true;
 	document.getElementById('calculate_button').disabled = true;
 	ChatStats.helpers.input_is_disabled = true;
 }
@@ -107,12 +115,14 @@ ChatStats.helpers.enable_input = function () {
 	for (let input of inputs) {
 		input.disabled = false;
 	}
+	document.getElementById('name_id_operation').disabled = false;
 	document.getElementById('calculate_button').disabled = false;
 	ChatStats.helpers.input_is_disabled = false;
 }
 
 ChatStats.helpers.input_is_disabled = true;
 ChatStats.helpers.filters_flag = true;
+ChatStats.helpers.name_id_operation = true;
 
 /******************************************************************************
  * Main
@@ -241,6 +251,19 @@ ChatStats.name_filter_change = async function() {
 		for (let message of player.messages) {
 			message.filter.name = flag;
 		}
+	}
+	
+	ChatStats.helpers.enable_input();
+}
+
+ChatStats.name_id_operation_change = function () {
+	ChatStats.helpers.disable_input();
+	
+	let setting = document.getElementById('name_id_operation').value;
+	if (setting === 'and') {
+		ChatStats.helpers.name_id_operation = true;
+	} else {
+		ChatStats.helpers.name_id_operation = false;
 	}
 	
 	ChatStats.helpers.enable_input();
