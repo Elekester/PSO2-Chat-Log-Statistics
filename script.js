@@ -122,7 +122,7 @@ ChatStats.helpers.enable_input = function () {
 
 ChatStats.helpers.input_is_disabled = true;
 ChatStats.helpers.filters_flag = true;
-ChatStats.helpers.name_id_operation = true;
+ChatStats.helpers.name_id_operation = false; // true if AND, false if OR.
 
 /******************************************************************************
  * Main
