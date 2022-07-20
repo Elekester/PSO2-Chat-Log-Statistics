@@ -1,4 +1,4 @@
-![Shields.io Release Badge](https://img.shields.io/github/v/release/elekester/pso2-chat-log-statistics)
+![Release v1.1.1](https://img.shields.io/github/v/release/elekester/pso2-chat-log-statistics)
 
 Get some basic statistics from your PSO2 chat log files, including a player's message counts for each chat.
 
@@ -76,4 +76,3 @@ The column names are derived from the internal names for each of the chats.
 * The Group column displays the Group Message Count for each player.
 * The Player ID column displays the unique number associated to each player's account.
 * The Names column displays the Player Names and Character Names associated to each player's account.
-
