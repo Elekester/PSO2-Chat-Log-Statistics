@@ -150,10 +150,10 @@ ChatStats.main.chat_log_files_change = async function(files) {
 		for (const old_file of ChatStats.data.files) {
 			if (old_file.lastModified === file.lastModified && old_file.name === file.name && old_file.size === file.size && old_file.type === file.type) {
 				duplicate_flag = true;
-			};
+			}
 			if (duplicate_flag) break;
 		}
-		if (duplicate_flag) continue;
+		if (duplicate_flag) continue; // Skip any files that are probably duplicates.
 		ChatStats.data.files.push(file);
 		document.getElementById('chat_log_file_count').innerText++; // Increment chat log count.
 		let symbol_flag = file.name.includes('Symbol');
