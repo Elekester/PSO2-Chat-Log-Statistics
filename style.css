@@ -5,13 +5,6 @@ body{
 	background: #f2f2f2;
 }
 
-.bordered {
-	border: 1px solid black;
-	padding: 1em;
-	display: inline-block;
-	margin: 0 auto;
-}
-
 .container {
 	margin: auto;
 	min-width: 500px;
@@ -19,11 +12,40 @@ body{
 	background: white;
 	min-height: 100%;
 	padding: 0.1px 1in;
+	text-align: center;
 }
 
-.development {
-	color: red;
-	display: none;
+.bordered {
+	border: 2px dashed black;
+	border-radius: 10px;
+	display: inline-block;
+	margin: 10px auto;
+	width: calc(100% - 4px);
+	text-align: center;
+	cursor: default;
+}
+
+.bordered:nth-child(2) {
+	margin-top: 0px;
+}
+
+.bordered > p {
+	width: 50%;
+	margin: 10px auto;
+}
+
+.unbordered {
+	display: inline-block;
+	margin: 10px auto;
+	width: 100%;
+	text-align: center;
+	cursor: default;
+}
+
+.unbordered > input {
+	width: 100%;
+	margin: 0px 10px;
+	width: 8em;
 }
 
 table {
@@ -32,6 +54,7 @@ table {
 	table-layout: fixed;
 	position: relative;
 	width: 100%;
+	margin: 10px auto;
 }
 
 th {
