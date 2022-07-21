@@ -146,7 +146,14 @@ ChatStats.main.chat_log_files_change = async function(files) {
 	for (const file of files) {
 		document.getElementById('chat_log_total_file_count').innerText++; // Increment file count.
 		if (!file.name.includes('ChatLog') || !file.type === 'text/plain' || file.size > 10000000) continue; // Skip any files that don't look like PSO2 chat logs.
-		if (ChatStats.data.files.includes(file)) console.log("DUPLICATE FILE");
+		let duplicate_flag = false;
+		for (const old_file of ChatStats.data.files) {
+			if (old_file.lastModified === file.lastModified && old_file.name === file.name && old_file.size === file.size && old_file.type === file.type) {
+				duplicate_flag = true;
+			};
+			if (duplicate_flag) break;
+		}
+		if (duplicate_flag) continue;
 		ChatStats.data.files.push(file);
 		document.getElementById('chat_log_file_count').innerText++; // Increment chat log count.
 		let symbol_flag = file.name.includes('Symbol');
@@ -215,6 +222,9 @@ ChatStats.main.update_output = function() {
 		row.appendChild(player_names_cell);
 		output.children[0].appendChild(row);
 	}
+	
+	ChatStats.utilities.sort_ascending = 1;
+	ChatStats.utilities.sort_index = 7;
 }
 
 ChatStats.main.download_output = function() {
