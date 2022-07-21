@@ -14,13 +14,13 @@
 			<p>Upload multiple Chat Log files with the file dialog or by dragging and dropping them here.</p>
 			<input type="button" id="chat_log_files_button" value="Choose Files" onclick="document.getElementById('chat_log_files').click();" />
 			<input type="file" name="chat_log_files" id="chat_log_files" accept=".txt" style="display: none;" onchange="ChatStats.main.chat_log_files_change();" multiple />
-			<p><small><span id="chat_log_files_indicator">0</span> files uploaded</small></p>
+			<p><small><span id="chat_log_file_count">0</span> chat logs / <span id="chat_log_total_file_count">0</span> files</small></p>
 		</div>
 		<div class="bordered">
 			<p>Add filters here.</p>
 		</div>
 		<div class="unbordered">
-			<input type="button" id="display_output" value="Update" onclick="ChatStats.main.update_output();" />
+			<input type="button" id="display_output" value="Calculate" onclick="ChatStats.main.update_output();" />
 			<input type="button" id="display_output" value="Download" onclick="ChatStats.main.download_output();" />
 			<input type="button" id="display_output" value="Reset" onclick="ChatStats.main.reset_all();" />
 		</div>
