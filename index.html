@@ -16,8 +16,11 @@
 			<input type="file" name="chat_log_files" id="chat_log_files" accept=".txt" style="display: none;" onchange="ChatStats.main.chat_log_files_change();" multiple />
 			<p><small><span id="chat_log_file_count">0</span> chat logs / <span id="chat_log_total_file_count">0</span> files</small></p>
 		</div>
-		<div class="bordered">
-			<p>Add filters here.</p>
+		<div class="unbordered">
+			<div class="filter_div">
+				<div id="add_filter">&#65291;</div>
+				<div id="filter_bar">Add a filter</div>
+			</div>
 		</div>
 		<div class="unbordered">
 			<input type="button" id="display_output" value="Calculate" onclick="ChatStats.main.update_output();" />

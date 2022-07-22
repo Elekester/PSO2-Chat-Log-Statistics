@@ -16,11 +16,10 @@ body{
 }
 
 .bordered {
-	border: 2px dashed black;
-	border-radius: 10px;
+	border: 1px dashed black;
 	display: inline-block;
 	margin: 10px auto;
-	width: calc(100% - 4px);
+	width: calc(100% - 2px);
 	text-align: center;
 	cursor: default;
 }
@@ -46,6 +45,34 @@ body{
 	width: 100%;
 	margin: 0px 10px;
 	width: 8em;
+}
+
+.filter_div {
+	border: 1px dashed black;
+	display: flex;
+}
+
+.filter_div > div {
+	padding: 10px;
+}
+
+#add_filter {
+	font-weight: bold;
+	background-color: #e2e2e2;
+	width: 21px;
+	cursor: pointer;
+}
+
+#add_filter:hover {
+	cursor: pointer;
+	background: #d2d2d2;
+}
+
+#filter_bar {
+	width: calc(100% - 21px);
+	font-style: italic;
+	text-align: left;
+	padding: 12px 10px 8px;
 }
 
 table {
