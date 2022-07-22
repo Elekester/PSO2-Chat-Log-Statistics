@@ -237,15 +237,14 @@ ChatStats.main.download_output = function(e) {
 	
 	let csv_content = '';
 	let name = '';
-	
-	if (e.altKey) {
+	if (e.altKey) { // If alt is held down as the button is clicked, download the list of all messages.
 		if (ChatStats.data.messages.length === 0) return; // Don't download when there are no messasges.
 		csv_content += '"Time","Chat","Player ID","Name","Symbol","Content"\r\n'
 		ChatStats.data.messages.forEach(message => {
 			csv_content += '"' + message.time + '","' + message.chat + '","' + message.player_id + '","' + message.name + '","' + message.is_symbol + '","' + message.content + '"\r\n';
 		});
 		name = 'ChatLog';
-	} else {
+	} else { // If alt is not held down as the button is clicked, download the output table.
 		let output_table = document.getElementById('output');
 		if (output_table.rows.length === 1) return; // Don't download an empty table.
 		[...output_table.rows].forEach(row => {
@@ -314,7 +313,6 @@ ChatStats.init = function() {
 		for (let cell of document.getElementById('output').rows[0].cells) {
 			cell.addEventListener('click', ChatStats.utilities.sort_table);
 		}
-		document.getElementById('download_output').addEventListener('click', ChatStats.main.download_output);
 		ChatStats.flags.initialized = true;
 	}
 }
