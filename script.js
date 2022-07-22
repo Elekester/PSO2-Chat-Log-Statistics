@@ -128,11 +128,13 @@ ChatStats.utilities.sort_table = async function() {
  * ChatStats.data
  *****************************************************************************/
 ChatStats.data = {};
+ChatStats.data.download_count = 0;
 
 /******************************************************************************
  * ChatStats.flags
  *****************************************************************************/
 ChatStats.flags = {};
+ChatStats.flags.initialized = false;
 
 /******************************************************************************
  * ChatStats.main
@@ -163,7 +165,7 @@ ChatStats.main.chat_log_files_change = async function(files) {
 		for (const line of file_lines) {
 			const message_split = line.split('\t');
 			if (!message_split?.[0] || !message_split?.[1] || !message_split?.[2] || !message_split?.[3] || !message_split?.[4] || !message_split?.[5]) continue; // Skip any messages that are missing data.
-			let message = new ChatStats.classes.Message(message_split[0], message_split[2], message_split[3], message_split[4], message_split[5], symbol_flag);
+			let message = new ChatStats.classes.Message(message_split[0], (message_split[2] === 'CHANNEL') ? 'GROUP' : message_split[2], message_split[3], message_split[4], message_split[5], symbol_flag);
 			ChatStats.data.messages.push(message);
 			
 			let player;
@@ -179,7 +181,8 @@ ChatStats.main.chat_log_files_change = async function(files) {
 	}
 	
 	for (const player of ChatStats.data.players) player.names.sort();
-	
+	ChatStats.data.messages.sort((message_1, message_2) => Date.parse(message_1.time) - Date.parse(message_2.time));
+	console.log(ChatStats.data.messages.map((elem) => elem.time));
 	ChatStats.flags.uploading = false;
 }
 
@@ -200,7 +203,7 @@ ChatStats.main.update_output = function() {
 			PARTY: 0,
 			GUILD: 0,
 			REPLY: 0,
-			GROUP: 0
+			GROUP: 0,
 		}
 		for (const message of player.messages) {
 			if (!message.passed_filters) continue; // Don't count filtered messages.
@@ -227,18 +230,31 @@ ChatStats.main.update_output = function() {
 	ChatStats.utilities.sort_index = 7;
 }
 
-ChatStats.main.download_output = function() {
-	let output_table = document.getElementById('output');
-	if (output_table.rows.length === 1) return; // Don't download an empty table.
-	let csv_content = 'data:text/csv;charset=utf-9,';
-	[...output_table.rows].forEach(row => {
-		csv_content += '"' + [...row.cells].map(cell => cell.innerText).join('","') + '"\r\n';
-	});
-	csv_content = encodeURI(csv_content);
+ChatStats.main.download_output = function(e) {
+	let csv_content = '';
+	let name = '';
+	
+	if (e.altKey) {
+		if (ChatStats.data.messages.length === 0) return; // Don't download when there are no messasges.
+		csv_content += '"Time","Chat","Player ID","Name","Symbol","Content"\r\n'
+		ChatStats.data.messages.forEach(message => {
+			csv_content += '"' + message.time + '","' + message.chat + '","' + message.player_id + '","' + message.name + '","' + message.is_symbol + '","' + message.content + '"\r\n';
+		});
+		name = 'ChatLog';
+	} else {
+		let output_table = document.getElementById('output');
+		if (output_table.rows.length === 1) return; // Don't download an empty table.
+		[...output_table.rows].forEach(row => {
+			csv_content += '"' + [...row.cells].map(cell => cell.innerText).join('","') + '"\r\n';
+		});
+		name = 'ChatLogStatistics';
+	}
+	let encoded_content = encodeURIComponent(csv_content);
 	let download = document.createElement('a');
-	download.href = csv_content;
-	download.download = 'ChatLogStatistics' + new Date().toISOString().slice(0,10).replaceAll('-','') + '.csv';
+	download.href = 'data:text/csv;charset=utf-9,' + encoded_content;
+	download.download = name + new Date().toISOString().slice(0,10).replaceAll('-','') + '-' + ChatStats.data.download_count.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + '.csv';
 	download.click();
+	ChatStats.data.download_count++;
 }
 
 ChatStats.main.reset_all = function() {
@@ -264,11 +280,8 @@ ChatStats.main.reset_all = function() {
 }
 
 /******************************************************************************
- * Initialization
+ * ChatStats.init
  *****************************************************************************/
-
-ChatStats.initialized = false;
-
 ChatStats.init = function() {	
 	/******************************************************************************
 	 * ChatStats.utilities
@@ -292,12 +305,13 @@ ChatStats.init = function() {
 	/******************************************************************************
 	 * Event Listeners
 	 *****************************************************************************/
-	if (!ChatStats.initialized) {
+	if (!ChatStats.flags.initialized) {
 		window.removeEventListener('load', ChatStats.init);
 		for (let cell of document.getElementById('output').rows[0].cells) {
 			cell.addEventListener('click', ChatStats.utilities.sort_table);
 		}
-		ChatStats.initialized = true;
+		document.getElementById('download_output').addEventListener('click', ChatStats.main.download_output);
+		ChatStats.flags.initialized = true;
 	}
 }
 
