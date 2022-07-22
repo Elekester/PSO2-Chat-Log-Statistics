@@ -182,7 +182,6 @@ ChatStats.main.chat_log_files_change = async function(files) {
 	
 	for (const player of ChatStats.data.players) player.names.sort();
 	ChatStats.data.messages.sort((message_1, message_2) => Date.parse(message_1.time) - Date.parse(message_2.time));
-	console.log(ChatStats.data.messages.map((elem) => elem.time));
 	ChatStats.flags.uploading = false;
 }
 
@@ -231,6 +230,11 @@ ChatStats.main.update_output = function() {
 }
 
 ChatStats.main.download_output = function(e) {
+	if (ChatStats.flags.uploading) {
+		setTimeout(() => ChatStats.main.download_output(e), 50);
+		return;
+	}
+	
 	let csv_content = '';
 	let name = '';
 	
