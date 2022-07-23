@@ -36,6 +36,10 @@ ChatStats.classes.Message = class Message {
 	get passed_filters() {
 		return true;
 	}
+	
+	static compare(message_1, message_2) {
+		return (message_1.time === message_2.time) && (message_1.player_id === message_2.player_id) && (message_1.content === message_2.content);
+	}
 }
 
 ChatStats.classes.Filter = class Filter {
@@ -147,7 +151,7 @@ ChatStats.main.chat_log_files_change = async function(files) {
 	
 	for (const file of files) {
 		document.getElementById('chat_log_total_file_count').innerText++; // Increment file count.
-		if (!file.name.includes('ChatLog') || !file.type === 'text/plain' || file.size > 10000000) continue; // Skip any files that don't look like PSO2 chat logs.
+		if (!(file.name.includes('ChatLog') || file.name.includes('ChatStatsLog')) || !file.type === 'text/plain') continue; // Skip any files that don't look like PSO2 chat logs.
 		let duplicate_flag = false;
 		for (const old_file of ChatStats.data.files) {
 			if (old_file.lastModified === file.lastModified && old_file.name === file.name && old_file.size === file.size && old_file.type === file.type) {
@@ -159,13 +163,14 @@ ChatStats.main.chat_log_files_change = async function(files) {
 		ChatStats.data.files.push(file);
 		document.getElementById('chat_log_file_count').innerText++; // Increment chat log count.
 		let symbol_flag = file.name.includes('Symbol');
+		let chat_stats_flag = file.name.includes('ChatStatsLog');
 		
 		// Convert the chat log to messages objects. Creat known player list.
 		let file_lines = (await file.text()).replace(/\r/g, '').split('\n');
 		for (const line of file_lines) {
 			const message_split = line.split('\t');
 			if (!message_split?.[0] || !message_split?.[1] || !message_split?.[2] || !message_split?.[3] || !message_split?.[4] || !message_split?.[5]) continue; // Skip any messages that are missing data.
-			let message = new ChatStats.classes.Message(message_split[0], (message_split[2] === 'CHANNEL') ? 'GROUP' : message_split[2], message_split[3], message_split[4], message_split[5], symbol_flag);
+			let message = new ChatStats.classes.Message(new Date(message_split[0]).toISOString(), (message_split[2] === 'CHANNEL') ? 'GROUP' : message_split[2], message_split[3], message_split[4], message_split[5], (chat_stats_flag && message_split.hasOwnProperty(6)) ? message_split[6] : symbol_flag);
 			ChatStats.data.messages.push(message);
 			
 			let player;
@@ -182,6 +187,14 @@ ChatStats.main.chat_log_files_change = async function(files) {
 	
 	for (const player of ChatStats.data.players) player.names.sort();
 	ChatStats.data.messages.sort((message_1, message_2) => Date.parse(message_1.time) - Date.parse(message_2.time));
+	console.log('begin')
+	let length = ChatStats.data.messages.length;
+	for (let i = length - 1; i > 0; i--) {
+		if (ChatStats.classes.Message.compare(ChatStats.data.messages[i], ChatStats.data.messages[i-1])) {
+			ChatStats.data.messages.splice(i, 1);
+		}
+	}
+	console.log('end')
 	ChatStats.flags.uploading = false;
 }
 
@@ -236,26 +249,27 @@ ChatStats.main.download_output = function(e) {
 	}
 	
 	let csv_content = '';
-	let name = '';
-	if (e.altKey) { // If alt is held down as the button is clicked, download the list of all messages.
+	let name = 'ChatStats';
+	let file_type;
+	if (e.ctrlKey) { // If ctrl is held down as the button is clicked, download the list of all messages.
 		if (ChatStats.data.messages.length === 0) return; // Don't download when there are no messasges.
-		csv_content += '"Time","Chat","Player ID","Name","Symbol","Content"\r\n'
 		ChatStats.data.messages.forEach(message => {
-			csv_content += '"' + message.time + '","' + message.chat + '","' + message.player_id + '","' + message.name + '","' + message.is_symbol + '","' + message.content + '"\r\n';
+			csv_content += [message.time, '1', message.chat, message.player_id, message.name, message.content, message.is_symbol].join('\t') + '\r\n';
 		});
-		name = 'ChatLog';
-	} else { // If alt is not held down as the button is clicked, download the output table.
+		name += 'Log';
+		file_type = '.txt';
+	} else { // If ctrl is not held down as the button is clicked, download the output table.
 		let output_table = document.getElementById('output');
 		if (output_table.rows.length === 1) return; // Don't download an empty table.
 		[...output_table.rows].forEach(row => {
 			csv_content += '"' + [...row.cells].map(cell => cell.innerText).join('","') + '"\r\n';
 		});
-		name = 'ChatLogStatistics';
+		file_type = '.csv';
 	}
 	let encoded_content = encodeURIComponent(csv_content);
 	let download = document.createElement('a');
 	download.href = 'data:text/csv;charset=utf-9,' + encoded_content;
-	download.download = name + new Date().toISOString().slice(0,10).replaceAll('-','') + '-' + ChatStats.data.download_count.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + '.csv';
+	download.download = name + new Date().toISOString().slice(0,10).replaceAll('-','') + '-' + ChatStats.data.download_count.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + file_type;
 	download.click();
 	ChatStats.data.download_count++;
 }
@@ -313,6 +327,12 @@ ChatStats.init = function() {
 		for (let cell of document.getElementById('output').rows[0].cells) {
 			cell.addEventListener('click', ChatStats.utilities.sort_table);
 		}
+		window.addEventListener('keydown', (e) => {
+			if (e.ctrlKey) document.getElementById('download_output').classList.add('ctrl_button');
+		});
+		window.addEventListener('keyup', (e) => {
+			if (!e.ctrlKey) document.getElementById('download_output').classList.remove('ctrl_button');
+		});
 		ChatStats.flags.initialized = true;
 	}
 }

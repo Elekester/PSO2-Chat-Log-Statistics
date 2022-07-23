@@ -75,6 +75,19 @@ body{
 	padding: 12px 10px 8px;
 }
 
+.ctrl_button {
+	background-color: rgb(247,120,120);
+	border-color: red;
+}
+
+.ctrl_button:hover, .ctrl_button:focus {
+	background-color: rgb(242,115,115);
+}
+
+.ctrl_button:active {
+	background-color: rgb(250,123,123);
+}
+
 table {
 	border-collapse: collapse;
 	font-size: smaller;
