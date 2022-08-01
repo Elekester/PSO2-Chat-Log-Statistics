@@ -186,15 +186,16 @@ ChatStats.main.chat_log_files_change = async function(files) {
 	}
 	
 	for (const player of ChatStats.data.players) player.names.sort();
+	
+	// Remove duplicate messages.
 	ChatStats.data.messages.sort((message_1, message_2) => Date.parse(message_1.time) - Date.parse(message_2.time));
-	console.log('begin')
 	let length = ChatStats.data.messages.length;
 	for (let i = length - 1; i > 0; i--) {
 		if (ChatStats.classes.Message.compare(ChatStats.data.messages[i], ChatStats.data.messages[i-1])) {
 			ChatStats.data.messages.splice(i, 1);
 		}
 	}
-	console.log('end')
+	
 	ChatStats.flags.uploading = false;
 }
 
@@ -334,6 +335,7 @@ ChatStats.init = function() {
 			if (!e.ctrlKey) document.getElementById('download_output').classList.remove('ctrl_button');
 		});
 		ChatStats.flags.initialized = true;
+		console.log("Howdy! - Nel");
 	}
 }
 

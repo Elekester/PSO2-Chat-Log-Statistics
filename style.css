@@ -1,8 +1,20 @@
-body{
+html {
+	height: 100%;
+}
+
+body {
+	height: 100%;
 	margin-top: 0px;
 	margin-bottom: 0px;
 	overflow-y: scroll;
 	background: #f2f2f2;
+	font-family: "Times New Roman", Times, serif;
+	font-size: 16px;
+	cursor: default;
+}
+
+header, .bordered, .unbordered {
+	user-select: none;
 }
 
 .container {
@@ -16,12 +28,12 @@ body{
 }
 
 .bordered {
-	border: 1px dashed black;
+	border: 1px solid rgb(118,118,118);
+	border-radius: 3px;
 	display: inline-block;
 	margin: 10px auto;
 	width: calc(100% - 2px);
 	text-align: center;
-	cursor: default;
 }
 
 .bordered:nth-child(2) {
@@ -38,7 +50,6 @@ body{
 	margin: 10px auto;
 	width: 100%;
 	text-align: center;
-	cursor: default;
 }
 
 .unbordered > input {
@@ -48,48 +59,63 @@ body{
 }
 
 .filter_div {
-	border: 1px dashed black;
+	border: 1px solid rgb(118,118,118);
+	border-radius: 3px;
 	display: flex;
 }
 
-.filter_div > div {
-	padding: 10px;
-}
-
 #add_filter {
-	font-weight: bold;
-	background-color: #e2e2e2;
-	width: 21px;
-	cursor: pointer;
+	padding: 10px;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 }
 
-#add_filter:hover {
-	cursor: pointer;
-	background: #d2d2d2;
+#add_filter > input {
+	aspect-ratio: 1/1;
+	font-weight: bold;
 }
 
 #filter_bar {
+	padding: 10px 10px 10px 0px;
+	display: flex;
+	justify-content: left;
+	align-items: center;
 	width: calc(100% - 21px);
-	font-style: italic;
-	text-align: left;
-	padding: 12px 10px 8px;
+	height: 28px;
 }
 
-.ctrl_button {
-	background-color: rgb(247,120,120);
+#filter_bar:empty:after {
+	content: "No filters selected";
+	padding: 4px;
+	background-color: #e2e2e2;
+	border: 1px solid rgb(118,118,118);
+	border-radius: 3px;
+}
+
+.filter {
+	padding: 4px;
+	background-color: #e2e2e2;
+	border: 1px solid rgb(118,118,118);
+	border-radius: 3px;
+}
+
+.ctrl_button, .ctrl_button:focus {
+	background-color: #f77878;
 	border-color: red;
+	border-radius: 3px;
 }
 
-.ctrl_button:hover, .ctrl_button:focus {
-	background-color: rgb(242,115,115);
+.ctrl_button:hover {
+	background-color: #f27272;
 }
 
 .ctrl_button:active {
-	background-color: rgb(250,123,123);
+	background-color: #fa7a7a;
 }
 
 table {
-	border-collapse: collapse;
+	border: 0px;
 	font-size: smaller;
 	table-layout: fixed;
 	position: relative;
@@ -98,16 +124,27 @@ table {
 }
 
 th {
+	border: 1px solid rgb(118,118,118);
+	border-radius: 3px;
 	text-align: left;
 	width: 4em;
 	position: sticky;
 	top: 0;
-	background: #e2e2e2;
+	background-color: rgb(239,239,239);
+	cursor: default;
+}
+
+tr {
+	cursor: auto;
+	text-align: left;
 }
 
 th:hover {
-	cursor: pointer;
-	background: #d2d2d2;
+	background-color: rgb(229,229,229);
+}
+
+th:active {
+	background-color: rgb(245,245,245);
 }
 
 tr:nth-child(even) {
