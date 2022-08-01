@@ -42,11 +42,6 @@ ChatStats.classes.Message = class Message {
 	}
 }
 
-ChatStats.classes.Filter = class Filter {
-	constructor() {
-	}
-}
-
 /******************************************************************************
  * ChatStats.utilities
  *****************************************************************************/
