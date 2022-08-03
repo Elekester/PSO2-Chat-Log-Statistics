@@ -65,6 +65,7 @@ ChatStats.classes.Filter = class Filter {
 		filter_div.classList.add('filter');
 		filter_div.id = 'filter' + this.id;
 		filter_div.style.backgroundColor = color;
+		filter_div.title = desc;
 		document.getElementById('filter_bar').appendChild(filter_div);
 	}
 	
@@ -107,16 +108,35 @@ ChatStats.classes.Filters = class Filters {
 			func: 'add_nameId',
 			desc: 'Filter messages by the Character/Player Name or Player ID of the player who sent the message.',
 			color: '#aaaae9',
-			sett: {
+			settings: {
 				name_list: {value: ''},
 				name_sensitivity: {value: 80},
 				player_id_list: {value: ''},
 				or_flag: {value: true}
 			}
+		}, {
+			name: 'Content',
+			func: 'add_content',
+			desc: 'Filter messages by their content.',
+			color: '#aae9aa',
+			settings: {
+				string: {value: ''},
+				is_regex: {value: false},
+				regex_flags: {value: ''}
+			}
+		}, {
+			name: 'Date',
+			func: 'add_date',
+			desc: 'Filter messages by their date.',
+			color: '#e9aaaa',
+			settings: {
+				start_date: {value: '2012-07-04'},
+				end_date: {value: new Date().toLocaleString('sv').slice(0, 10)}
+			}
 		}
 	];
 	
-	add_nameId(settings = this.constructor.types[0].sett) {
+	add_nameId(settings = this.constructor.types[0].settings) {
 		this.add(this.constructor.types[0].name, this.constructor.types[0].desc, this.constructor.types[0].color, settings, function() {
 			let no_name_list = this.settings.name_list.value === '';
 			let names;
@@ -154,6 +174,38 @@ ChatStats.classes.Filters = class Filters {
 					else {flag = id_flag && name_flag}
 					message.filters[this.id] = flag;
 				}
+			}
+		});
+	}
+	
+	add_content(settings = this.constructor.types[1].settings) {
+		this.add(this.constructor.types[1].name, this.constructor.types[1].desc, this.constructor.types[1].color, settings, function() {
+			let string = this.settings.string.value;
+			if (!string) {
+				for (let message of ChatStats.data.messages) {
+					message.filters[this.id] = true;
+				}
+				return;
+			}
+			let re;
+			if (this.settings.is_regex.value) {
+				re = new RegExp(string, this.settings.regex_flags.value);
+			} else {
+				re = new RegExp(string, 'i');
+			}
+			for (let message of ChatStats.data.messages) {
+				message.filters[this.id] = re.test(message.content);
+			}
+		});
+	}
+	
+	add_date(settings = this.constructor.types[2].settings) {
+		this.add(this.constructor.types[2].name, this.constructor.types[2].desc, this.constructor.types[2].color, settings, function() {
+			let start_date = Date.parse(this.settings.start_date.value);
+			let end_date = Date.parse(this.settings.end_date.value) + 86400000; // Add a day in ms to adjust for inclusivity.
+			for (let message of ChatStats.data.messages) {
+				let message_date = Date.parse(message.time);
+				message.filters[this.id] = message_date >= start_date && message_date <= end_date;
 			}
 		});
 	}
