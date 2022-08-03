@@ -19,7 +19,10 @@
 		</div>
 		<div class="unbordered">
 			<div class="filter_div">
-				<div id="add_filter"><input type="button" id="add_filter_button" value="+" /></div>
+				<div id="add_filter">
+					<input type="button" id="add_filter_button" value="+" class="dropdown_button" onclick="ChatStats.main.add_filter();" />
+					<div id="filter_dropdown" class="dropdown_content"></div>
+				</div>
 				<div id="filter_bar"></div>
 			</div>
 		</div>

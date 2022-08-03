@@ -65,15 +65,31 @@ header, .bordered, .unbordered {
 }
 
 #add_filter {
-	padding: 10px;
+	padding: 10px 0px 10px 10px;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
 
 #add_filter > input {
+	position: relative;
 	aspect-ratio: 1/1;
 	font-weight: bold;
+}
+
+.dropdown_content {
+	display: none;
+	position: absolute;
+	transform: translate(calc(50% + 17px), 0);
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	z-index: 1;
+}
+
+.dropdown_content > input {
+}
+
+.show {
+	display: block;
 }
 
 #filter_bar {
@@ -83,10 +99,13 @@ header, .bordered, .unbordered {
 	align-items: center;
 	width: calc(100% - 21px);
 	height: 28px;
+	overflow-x: auto;
+	overflow-y: hidden;
 }
 
 #filter_bar:empty:after {
 	content: "No filters selected";
+	margin-left: 10px;
 	padding: 4px;
 	background-color: #e2e2e2;
 	border: 1px solid rgb(118,118,118);
@@ -94,6 +113,7 @@ header, .bordered, .unbordered {
 }
 
 .filter {
+	margin-left: 10px;
 	padding: 4px;
 	background-color: #e2e2e2;
 	border: 1px solid rgb(118,118,118);
@@ -126,7 +146,7 @@ table {
 th {
 	border: 1px solid rgb(118,118,118);
 	border-radius: 3px;
-	text-align: left;
+	text-align: center;
 	width: 4em;
 	position: sticky;
 	top: 0;

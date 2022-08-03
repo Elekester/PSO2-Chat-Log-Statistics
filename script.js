@@ -29,11 +29,15 @@ ChatStats.classes.Message = class Message {
 		this.name = name;
 		this.content = content;
 		this.is_symbol = is_symbol;
-		this.filters = {
-		}
+		this.filters = {};
 	}
 	
 	get passed_filters() {
+		for (const filter of ChatStats.data.filters.active) {
+			if (!this.filters[filter.id]) {
+				return false;
+			}
+		}
 		return true;
 	}
 	
@@ -42,10 +46,127 @@ ChatStats.classes.Message = class Message {
 	}
 }
 
+ChatStats.classes.Filter = class Filter {
+	constructor(type, desc, color, settings, apply) {
+		this.id = ChatStats.utilities.rand_int(10**9, 10**10);
+		this.type = type;
+		this.desc = desc;
+		this.color = color;
+		this.settings = {};
+		for (const [option_name, option_settings] of Object.entries(settings)) {
+			this.settings[option_name] = {};
+			for (const [key, value] of Object.entries(option_settings)) {
+				this.settings[option_name][key] = value;
+			}
+		}
+		this.apply = apply.bind(this);
+		let filter_div = document.createElement('div');
+		filter_div.innerText = type;
+		filter_div.classList.add('filter');
+		filter_div.id = 'filter' + this.id;
+		filter_div.style.backgroundColor = color;
+		document.getElementById('filter_bar').appendChild(filter_div);
+	}
+	
+	remove_element() {
+		document.getElementById('filter' + this.id).remove();
+		return this;
+	}
+}
+
+ChatStats.classes.Filters = class Filters {
+	constructor() {
+		this.active = [];
+	}
+	
+	add(type = 'none', desc = 'This filter does nothing.', color = '#e2e2e2', settings = {}, apply_callback = function(){return true;}) {
+		let f = new ChatStats.classes.Filter(type, desc, color, settings, apply_callback);
+		this.active.push(f);
+		return f;
+	}
+	
+	remove(filter) {
+		if (typeof(filter) === 'number') {
+			if (filter < 10**9) {
+				filter = this.active[filter];
+			} else {
+				filter = this.active.find(item => item.id === filter);
+			}
+		}
+		let result = filter?.remove_element();
+		if (result) {
+			let index = this.active.indexOf(result);
+			this.active.splice(index, 1);
+		}
+		return result;
+	}
+	
+	static types = [
+		{
+			name: 'Name/ID',
+			func: 'add_nameId',
+			desc: 'Filter messages by the Character/Player Name or Player ID of the player who sent the message.'
+		}
+	];
+	
+	add_nameId(settings = this.constructor.nameId_default_settings) {
+		this.add('Name/ID', 'Filter messages by the Character/Player Name or Player ID of the player who sent the message.', '#aaaae9', settings, function() {
+			let no_name_list = this.settings.name_list.value === '';
+			let names;
+			if (no_name_list) {
+				names = [];
+			} else {
+				names = this.settings.name_list.value.split(/[\t\n\r,]+/).map(name => name.trim());
+			}
+			let cutoff = this.settings.name_sensitivity.value / 100;
+			let no_id_list = this.settings.player_id_list.value === '';
+			let ids;
+			if (no_id_list) {
+				ids = [];
+			} else {
+				ids = this.settings.player_id_list.value.split(/[\t\n\r,]+/).map(id => id.trim());
+			}
+			for (const player of ChatStats.data.players) {
+				let name_flag = no_name_list;
+				for (const name of names) {
+					for (const player_name of player.names) {
+						if (ChatStats.utilities.similarity(name, player_name) >= cutoff) {
+							name_flag = true;
+							break;
+						}
+					}
+					if (name_flag) break;
+				}
+				let id_flag = no_id_list;
+				if (ids.includes(player.id)) id_flag = true;
+				for (let message of player.messages) {
+					let flag;
+					if (no_name_list) {flag = id_flag}
+					else if (no_id_list) {flag = name_flag}
+					else if (this.settings.or_flag.value) {flag = id_flag || name_flag}
+					else {flag = id_flag && name_flag}
+					message.filters[this.id] = flag;
+				}
+			}
+		});
+	}
+	
+	static nameId_default_settings = {
+		name_list: {value: ''},
+		name_sensitivity: {value: 80},
+		player_id_list: {value: ''},
+		or_flag: {value: true}
+	}
+}
+
 /******************************************************************************
  * ChatStats.utilities
  *****************************************************************************/
 ChatStats.utilities = {};
+
+ChatStats.utilities.rand_int = function (min, max) {
+	return Math.floor(Math.random() * (max - min)) + min;
+}
 
 /* Credit to overlord1234. https://stackoverflow.com/questions/10473745/compare-strings-javascript-return-of-likely */
 ChatStats.utilities.levenshtein_distance = function (string_1, string_2, ignore_case = true) {
@@ -194,10 +315,18 @@ ChatStats.main.chat_log_files_change = async function(files) {
 	ChatStats.flags.uploading = false;
 }
 
+ChatStats.main.add_filter = function() {
+	document.getElementById('filter_dropdown').classList.toggle('show');
+}
+
 ChatStats.main.update_output = function() {
 	if (ChatStats.flags.uploading) {
 		setTimeout(ChatStats.main.update_output, 50);
 		return;
+	}
+	
+	for (const filter of ChatStats.data.filters.active) {
+		filter.apply();
 	}
 	
 	let output_table = document.getElementById('output');
@@ -287,6 +416,10 @@ ChatStats.main.reset_all = function() {
 	output_rows.shift();
 	for (const row of output_rows) row.remove();
 	
+	for (let filter of ChatStats.data.filters.active || []) {
+		filter.remove_element();
+	}
+	
 	ChatStats.init();
 	
 	[...document.getElementsByTagName('input')].forEach(element => {element.disabled = false;}); // Enable Input.
@@ -304,11 +437,13 @@ ChatStats.init = function() {
 	
 	/******************************************************************************
 	 * ChatStats.data
-	 *****************************************************************************/	
+	 *****************************************************************************/
+	ChatStats.data.filters = [];
 	ChatStats.data.players = [];
 	ChatStats.data.player_ids = [];
 	ChatStats.data.messages = [];
 	ChatStats.data.files = [];
+	ChatStats.data.filters = new ChatStats.classes.Filters();
 	
 	/******************************************************************************
 	 * ChatStats.flags
@@ -320,15 +455,35 @@ ChatStats.init = function() {
 	 *****************************************************************************/
 	if (!ChatStats.flags.initialized) {
 		window.removeEventListener('load', ChatStats.init);
+		
+		for (const filter_type of ChatStats.classes.Filters.types) {
+			let item = document.createElement('input');
+			item.type = 'button';
+			item.value = filter_type.name;
+			item.title = filter_type.desc;
+			item.onclick = () => ChatStats.data.filters[filter_type.func]();
+			document.getElementById('filter_dropdown').appendChild(item);
+		}
+		window.addEventListener('click', (e) => {
+			if (!event.target.matches('.dropdown_button')) {
+				let dropdowns = document.getElementsByClassName('dropdown_content');
+				for (let dropdown of dropdowns) {
+					if (dropdown.classList.contains('show')) dropdown.classList.remove('show');
+				}
+			}
+		});
+		
 		for (let cell of document.getElementById('output').rows[0].cells) {
 			cell.addEventListener('click', ChatStats.utilities.sort_table);
 		}
+		
 		window.addEventListener('keydown', (e) => {
 			if (e.ctrlKey) document.getElementById('download_output').classList.add('ctrl_button');
 		});
 		window.addEventListener('keyup', (e) => {
 			if (!e.ctrlKey) document.getElementById('download_output').classList.remove('ctrl_button');
 		});
+		
 		ChatStats.flags.initialized = true;
 		console.log("Howdy! - Nel");
 	}
