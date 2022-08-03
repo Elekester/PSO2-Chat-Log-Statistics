@@ -105,12 +105,19 @@ ChatStats.classes.Filters = class Filters {
 		{
 			name: 'Name/ID',
 			func: 'add_nameId',
-			desc: 'Filter messages by the Character/Player Name or Player ID of the player who sent the message.'
+			desc: 'Filter messages by the Character/Player Name or Player ID of the player who sent the message.',
+			color: '#aaaae9',
+			sett: {
+				name_list: {value: ''},
+				name_sensitivity: {value: 80},
+				player_id_list: {value: ''},
+				or_flag: {value: true}
+			}
 		}
 	];
 	
-	add_nameId(settings = this.constructor.nameId_default_settings) {
-		this.add('Name/ID', 'Filter messages by the Character/Player Name or Player ID of the player who sent the message.', '#aaaae9', settings, function() {
+	add_nameId(settings = this.constructor.types[0].sett) {
+		this.add(this.constructor.types[0].name, this.constructor.types[0].desc, this.constructor.types[0].color, settings, function() {
 			let no_name_list = this.settings.name_list.value === '';
 			let names;
 			if (no_name_list) {
@@ -149,13 +156,6 @@ ChatStats.classes.Filters = class Filters {
 				}
 			}
 		});
-	}
-	
-	static nameId_default_settings = {
-		name_list: {value: ''},
-		name_sensitivity: {value: 80},
-		player_id_list: {value: ''},
-		or_flag: {value: true}
 	}
 }
 
