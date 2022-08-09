@@ -584,7 +584,7 @@ ChatStats.init = function() {
 			item.onclick = () => {
 				let f = ChatStats.data.filters[filter_type.func]();
 				setTimeout(() => {
-					document.getElementById('filter_edit' + f.id).classList.add('show_edit');
+					document.getElementById('filter' + f.id).click();
 				}, 10);
 			}
 			document.getElementById('filter_dropdown').appendChild(item);
