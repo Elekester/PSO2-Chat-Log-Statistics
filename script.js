@@ -77,13 +77,43 @@ ChatStats.classes.Filter = class Filter {
 		edit_desc.innerText = desc;
 		filter_edit_div.appendChild(edit_desc);
 		filter_edit_div.appendChild(document.createElement('hr'));
-		// Add the settings.
+		let edit_settings = document.createElement('div');
+		for (const [option_name, option_settings] of Object.entries(settings)) {
+			let opt = document.createElement('div');
+			if (option_settings?.label) {
+				let label = document.createElement('label');
+				label.innerText = option_settings.label;
+				label.setAttribute('for', option_name);
+				opt.appendChild(label);
+			}
+			let input = document.createElement('input');
+			input.name = option_name;
+			for (const [attribute, foo] of Object.entries(option_settings)) {
+				if (attribute !== 'label') {
+					input.setAttribute(attribute, foo);
+				}
+			}
+			if (input.type === 'checkbox') {
+				input.onchange = function(){input.value = input.value === 'true' ? 'false' : 'true';};
+			}
+			opt.appendChild(input);
+			edit_settings.appendChild(opt);
+		}
+		filter_edit_div.appendChild(edit_settings);
 		filter_edit_div.appendChild(document.createElement('hr'));
 		let edit_save = document.createElement('input');
 		edit_save.type = 'button';
 		edit_save.value = 'Save';
 		edit_save.classList.add('edit_save_button');
-		// edit_save.onclick = 
+		edit_save.onclick = () => {
+			for (const child of [...edit_settings.children].map(node => node.lastChild)) {
+				if (child.type === 'checkbox') {
+					this.settings[child.name].value = child.value === 'true';
+				} else {
+					this.settings[child.name].value = child.value;
+				}
+			}
+		}
 		filter_edit_div.appendChild(edit_save);
 		let edit_remove = document.createElement('input');
 		edit_remove.type = 'button';
@@ -95,7 +125,14 @@ ChatStats.classes.Filter = class Filter {
 		
 		filter_div.onclick = () => {
 			filter_edit_div.classList.toggle('show_edit');
-			// Update values of settings in the filter_edit_div.
+			for (const child of [...edit_settings.children].map(node => node.lastChild)) {
+				if (child.type === 'checkbox') {
+					child.value = this.settings[child.name].value;
+					child.checked = this.settings[child.name].value;
+				} else {
+					child.value = this.settings[child.name].value;
+				}
+			}
 		}
 		document.getElementById('filter_bar').appendChild(div);
 	}
@@ -140,10 +177,10 @@ ChatStats.classes.Filters = class Filters {
 			desc: 'Filter messages by the Character/Player Name or Player ID of the player who sent the message.',
 			color: '#aaaae9',
 			settings: {
-				name_list: {value: ''},
-				name_sensitivity: {value: 80},
-				player_id_list: {value: ''},
-				or_flag: {value: true}
+				name_list: {value: '', type: 'text', placeholder: 'List of Names'},
+				name_sensitivity: {value: 20, type: 'number', min: 0, max: 100, step: 5, label: 'Name Match Threshold: '},
+				player_id_list: {value: '', type: 'text', placeholder: 'List of Player IDs'},
+				or_flag: {value: true, type: 'checkbox', checked: true, label: 'Match Name OR ID'}
 			}
 		}, {
 			name: 'Content',
@@ -151,9 +188,9 @@ ChatStats.classes.Filters = class Filters {
 			desc: 'Filter messages by their content.',
 			color: '#aae9aa',
 			settings: {
-				string: {value: ''},
-				is_regex: {value: false},
-				regex_flags: {value: ''}
+				string: {value: '', type: 'text', placeholder: 'Message Text'},
+				is_regex: {value: false, type: 'checkbox', checked: false, label: 'Is RegEx'},
+				regex_flags: {value: '', type: 'text', placeholder: 'RegEx Flags'}
 			}
 		}, {
 			name: 'Date',
@@ -161,8 +198,8 @@ ChatStats.classes.Filters = class Filters {
 			desc: 'Filter messages by their date.',
 			color: '#e9aaaa',
 			settings: {
-				start_date: {value: '2012-07-04'},
-				end_date: {value: new Date().toLocaleString('sv').slice(0, 10)}
+				start_date: {value: '2012-07-04', type: 'date', min: '2012-07-04', max: new Date().toLocaleString('sv').slice(0, 10)},
+				end_date: {value: new Date().toLocaleString('sv').slice(0, 10), type: 'date', min: '2012-07-04', max: new Date().toLocaleString('sv').slice(0, 10)}
 			}
 		}
 	];
@@ -176,7 +213,7 @@ ChatStats.classes.Filters = class Filters {
 			} else {
 				names = this.settings.name_list.value.split(/[\t\n\r,]+/).map(name => name.trim());
 			}
-			let cutoff = this.settings.name_sensitivity.value / 100;
+			let cutoff = 1 - this.settings.name_sensitivity.value / 100;
 			let no_id_list = this.settings.player_id_list.value === '';
 			let ids;
 			if (no_id_list) {
