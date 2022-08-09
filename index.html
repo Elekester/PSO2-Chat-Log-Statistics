@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en" >
 	<head>
 		<meta charset="utf-8" />
@@ -6,73 +7,44 @@
 		<script src="script.js"></script>
 	</head>
 	<body>
-	<div class="container">
-		<h1>PSO2 Chat Log Statistics</h1>
-		<div class="bordered">
-			<div>
-				<span class="development">1</span>
-				<label for="chat_log_files">Select chat log files to upload:</label>
-				<input type="file" name="chat_log_files" id="chat_log_files" accept=".txt" onchange="ChatStats.chat_logs_change();" multiple />
-			</div>
-			<div>
-				<span class="development">2</span>
-				<label for="id_filter_file">Select an optional Player ID filter file to upload:</label>
-				<input type="file" name="id_filter_file" id="id_filter_file" accept=".txt" onchange="ChatStats.id_filter_change();" disabled />
-			</div>
-			<div>
-				<span class="development">3</span>
-				<label for="name_filter_file">Select an optional name filter file to upload:</label>
-				<input type="file" name="name_filter_file" id="name_filter_file" accept=".txt" onchange="ChatStats.name_filter_change();" disabled />
-			</div>
-			<div>
-				<span class="development">4</span>
-				<label for="name_filter_cutoff">Select a sensitivity for name differences:</label>
-				<input type="number" name="name_filter_cutoff" id="name_filter_cutoff" min="0" max="100" value="80" step="5" onchange="ChatStats.name_filter_change();" disabled />
-			</div>
-			<div>
-				<span class="development">5</span>
-				<label for="name_id_operation">Name and Player ID Filter Operation:</label>
-				<select name="name_id_operation" id="name_id_operation" onchange="ChatStats.name_id_operation_change();" disabled>
-					<option value="and">Player must match Name AND Player Id</option>
-					<option value="or" selected="selected">Player must match Name OR Player ID</option>
-				</select>
-			</div>
-			<div>
-				<span class="development">6</span>
-				<label for="filter_message">Message filter (RegEx supported):</label>
-				<input type="text" name="filter_message" id="filter_message" onchange="ChatStats.message_filter_change();" disabled />
-			</div>
-			<div>
-				<span class="development">7</span>
-				<label>Select a range of dates to filter by:</label>
-				<input type="date" id="date_start" name="date_start" value="2012-07-04" min="2012-07-04" onchange="ChatStats.date_filter_change();" disabled />
-				<input type="date" id="date_end" name="date_end" value="9999-12-31" min="2012-07-04" onchange="ChatStats.date_filter_change();" disabled />
-			</div>
-			<div>
-				<span class="development">8</span>
-				<button name="calculate_button" id="calculate_button" type="button" onclick="ChatStats.display();" disabled>Calculate Statistics</button>
+	<div id="container" class="container">
+		<header>
+			<h1>PSO2 Chat Log Statistics</h1>
+		</header>
+		<div class="bordered" id="chat_log_files_drop_area" ondrop="ChatStats.utilities.drop_handler(event, ChatStats.main.chat_log_files_change);" ondragover="ChatStats.utilities.drop_over_handler(event);">
+			<p>Upload multiple Chat Log files with the file dialog or by dragging and dropping them here.</p>
+			<input type="button" id="chat_log_files_button" value="Choose Files" onclick="document.getElementById('chat_log_files').click();" />
+			<input type="file" name="chat_log_files" id="chat_log_files" accept=".txt" style="display: none;" onchange="ChatStats.main.chat_log_files_change();" multiple />
+			<p><small><span id="chat_log_file_count">0</span> chat logs / <span id="chat_log_total_file_count">0</span> files</small></p>
+		</div>
+		<div class="unbordered">
+			<div class="filter_div">
+				<div id="add_filter">
+					<input type="button" id="add_filter_button" value="+" class="dropdown_button" onclick="ChatStats.main.add_filter();" />
+					<div id="filter_dropdown" class="dropdown_content"></div>
+				</div>
+				<div id="filter_bar"></div>
 			</div>
 		</div>
-		<div>
-			<p>See the <a href="https://github.com/Elekester/PSO2-Chat-Log-Statistics/">GitHub Repository</a> for the user manual and the source code.</p>
-			<a href="javascript:void(0);" id="download" title="Click to download the output"><button type="button" id="download_button" disabled>Download the output as a csv</button></a>
+		<div class="unbordered">
+			<input type="button" id="display_output" value="Calculate" onclick="ChatStats.main.update_output();" title="Click calculate and display the output" />
+			<input type="button" id="download_output" value="Download" onclick="ChatStats.main.download_output(event);" title="Click to download the displayed output or ctrl-click to download a combined chat log" />
+			<input type="button" id="reset_all" value="Reset" onclick="ChatStats.main.reset_all();" title="Click to reset program" />
 		</div>
-		<div>
-			<h2>Output</h2>
-			<table id="output">
-				<tbody>
-					<tr>
-						<th id="total_column" title="Total Message Count">Total</th>
-						<th id="public_column" title="Areaw Message Count">Public</th>
-						<th id="party_column" title="Pary Message Count">Party</th>
-						<th id="guild_column" title="Alliance Message Count">Guild</th>
-						<th id="reply_column" title="Whiusper Message Count">Reply</th>
-						<th id="group_column" title="Group Message Count">Group</th>
-						<th id="player_id_column" title="The player's numerical Player ID">Player ID</th>
-						<th id="names_column" title="The Player Names and Character Names associated with the player">Names</th>
-					</tr>
-				</tbody>
-			</table>
-		</div>
+		<table id="output">
+			<tbody>
+				<tr>
+					<th id="total_column" title="Total Message Count">Total</th>
+					<th id="public_column" title="Area Message Count">Public</th>
+					<th id="party_column" title="Party Message Count">Party</th>
+					<th id="guild_column" title="Alliance Message Count">Guild</th>
+					<th id="reply_column" title="Whisper Message Count">Reply</th>
+					<th id="group_column" title="Group Message Count">Group</th>
+					<th id="player_id_column" title="The player's numerical Player ID">Player ID</th>
+					<th id="names_column" title="The Player Names and Character Names associated with the player">Names</th>
+				</tr>
+			</tbody>
+		</table>
+		<p>See the <a href="https://github.com/Elekester/PSO2-Chat-Log-Statistics/">GitHub Repository</a> for the user manual and the source code.</p>
 	</body>
 </html>

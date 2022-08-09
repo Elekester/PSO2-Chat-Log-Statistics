@@ -9,9 +9,8 @@
 let ChatStats = {};
 
 /******************************************************************************
- * Classes
+ * ChatStats.classes
  *****************************************************************************/
-
 ChatStats.classes = {};
 
 ChatStats.classes.Player = class Player {
@@ -23,39 +22,274 @@ ChatStats.classes.Player = class Player {
 }
 
 ChatStats.classes.Message = class Message {
-	constructor(time, chat, player_id, name, content) {
+	constructor(time, chat, player_id, name, content, is_symbol) {
 		this.time = time;
 		this.chat = chat;
 		this.player_id = player_id;
 		this.name = name;
 		this.content = content;
-		this.filter = {
-			id: true,
-			name: true,
-			content: true,
-			date: true
-		}
+		this.is_symbol = is_symbol;
+		this.filters = {};
 	}
 	
-	get filtered() {
-		let name_id;
-		if (ChatStats.helpers.name_id_operation) {
-			name_id = this.filter.name && this.filter.id;
-		} else {
-			name_id = this.filter.name || this.filter.id;
+	get passed_filters() {
+		for (const filter of ChatStats.data.filters.active) {
+			if (!this.filters[filter.id]) {
+				return false;
+			}
 		}
-		return this.filter.content && this.filter.date && name_id;
+		return true;
+	}
+	
+	static compare(message_1, message_2) {
+		return (message_1.time === message_2.time) && (message_1.player_id === message_2.player_id) && (message_1.content === message_2.content);
+	}
+}
+
+ChatStats.classes.Filter = class Filter {
+	constructor(type, desc, color, settings, apply) {
+		this.id = ChatStats.utilities.rand_int(10**9, 10**10);
+		this.type = type;
+		this.desc = desc;
+		this.color = color;
+		this.settings = {};
+		for (const [option_name, option_settings] of Object.entries(settings)) {
+			this.settings[option_name] = {};
+			for (const [key, value] of Object.entries(option_settings)) {
+				this.settings[option_name][key] = value;
+			}
+		}
+		this.apply = apply.bind(this);
+		
+		let div = document.createElement('div');
+		let filter_div = document.createElement('div');
+		filter_div.innerText = type;
+		filter_div.classList.add('filter');
+		filter_div.id = 'filter' + this.id;
+		filter_div.style.backgroundColor = color;
+		filter_div.title = desc;
+		div.appendChild(filter_div);
+		
+		let filter_edit_div = document.createElement('div');
+		filter_edit_div.classList.add('filter_edit');
+		filter_edit_div.id = 'filter_edit' + this.id;
+		let edit_desc = document.createElement('p');
+		edit_desc.innerText = desc;
+		filter_edit_div.appendChild(edit_desc);
+		filter_edit_div.appendChild(document.createElement('hr'));
+		let edit_settings = document.createElement('div');
+		for (const [option_name, option_settings] of Object.entries(settings)) {
+			let opt = document.createElement('div');
+			if (option_settings?.label) {
+				let label = document.createElement('label');
+				label.innerText = option_settings.label;
+				label.setAttribute('for', option_name);
+				opt.appendChild(label);
+			}
+			let input = document.createElement('input');
+			input.name = option_name;
+			for (const [attribute, foo] of Object.entries(option_settings)) {
+				if (attribute !== 'label') {
+					input.setAttribute(attribute, foo);
+				}
+			}
+			if (input.type === 'checkbox') {
+				input.onchange = function(){input.value = input.value === 'true' ? 'false' : 'true';};
+			}
+			opt.appendChild(input);
+			edit_settings.appendChild(opt);
+		}
+		filter_edit_div.appendChild(edit_settings);
+		filter_edit_div.appendChild(document.createElement('hr'));
+		let edit_save = document.createElement('input');
+		edit_save.type = 'button';
+		edit_save.value = 'Save';
+		edit_save.classList.add('edit_save_button');
+		edit_save.onclick = () => {
+			for (const child of [...edit_settings.children].map(node => node.lastChild)) {
+				if (child.type === 'checkbox') {
+					this.settings[child.name].value = child.value === 'true';
+				} else {
+					this.settings[child.name].value = child.value;
+				}
+			}
+		}
+		filter_edit_div.appendChild(edit_save);
+		let edit_remove = document.createElement('input');
+		edit_remove.type = 'button';
+		edit_remove.value = 'Remove';
+		edit_remove.classList.add('edit_remove_button');
+		edit_remove.onclick = () => ChatStats.data.filters.remove(this);
+		filter_edit_div.appendChild(edit_remove);
+		div.appendChild(filter_edit_div);
+		
+		filter_div.onclick = () => {
+			filter_edit_div.classList.toggle('show_edit');
+			for (const child of [...edit_settings.children].map(node => node.lastChild)) {
+				if (child.type === 'checkbox') {
+					child.value = this.settings[child.name].value;
+					child.checked = this.settings[child.name].value;
+				} else {
+					child.value = this.settings[child.name].value;
+				}
+			}
+		}
+		document.getElementById('filter_bar').appendChild(div);
+	}
+	
+	remove_element() {
+		document.getElementById('filter' + this.id).parentElement.remove();
+		return this;
+	}
+}
+
+ChatStats.classes.Filters = class Filters {
+	constructor() {
+		this.active = [];
+	}
+	
+	add(type = 'none', desc = 'This filter does nothing.', color = '#e2e2e2', settings = {}, apply_callback = function(){return true;}) {
+		let f = new ChatStats.classes.Filter(type, desc, color, settings, apply_callback);
+		this.active.push(f);
+		return f;
+	}
+	
+	remove(filter) {
+		if (typeof(filter) === 'number') {
+			if (filter < 10**9) {
+				filter = this.active[filter];
+			} else {
+				filter = this.active.find(item => item.id === filter);
+			}
+		}
+		let result = filter?.remove_element();
+		if (result) {
+			let index = this.active.indexOf(result);
+			this.active.splice(index, 1);
+		}
+		return result;
+	}
+	
+	static types = [
+		{
+			name: 'Name/ID',
+			func: 'add_nameId',
+			desc: 'Filter messages by the Character/Player Name or Player ID of the player who sent the message.',
+			color: '#aaaae9',
+			settings: {
+				name_list: {value: '', type: 'text', placeholder: 'List of Names'},
+				name_sensitivity: {value: 20, type: 'number', min: 0, max: 100, step: 5, label: 'Name Match Threshold: '},
+				player_id_list: {value: '', type: 'text', placeholder: 'List of Player IDs'},
+				or_flag: {value: true, type: 'checkbox', checked: true, label: 'Match Name OR ID'}
+			}
+		}, {
+			name: 'Content',
+			func: 'add_content',
+			desc: 'Filter messages by their content.',
+			color: '#aae9aa',
+			settings: {
+				string: {value: '', type: 'text', placeholder: 'Message Text'},
+				is_regex: {value: false, type: 'checkbox', checked: false, label: 'Is RegEx'},
+				regex_flags: {value: '', type: 'text', placeholder: 'RegEx Flags'}
+			}
+		}, {
+			name: 'Date',
+			func: 'add_date',
+			desc: 'Filter messages by their date.',
+			color: '#e9aaaa',
+			settings: {
+				start_date: {value: '2012-07-04', type: 'date', min: '2012-07-04', max: new Date().toLocaleString('sv').slice(0, 10)},
+				end_date: {value: new Date().toLocaleString('sv').slice(0, 10), type: 'date', min: '2012-07-04', max: new Date().toLocaleString('sv').slice(0, 10)}
+			}
+		}
+	];
+	
+	add_nameId(settings = this.constructor.types[0].settings) {
+		return this.add(this.constructor.types[0].name, this.constructor.types[0].desc, this.constructor.types[0].color, settings, function() {
+			let no_name_list = this.settings.name_list.value === '';
+			let names;
+			if (no_name_list) {
+				names = [];
+			} else {
+				names = this.settings.name_list.value.split(/[\t\n\r,]+/).map(name => name.trim());
+			}
+			let cutoff = 1 - this.settings.name_sensitivity.value / 100;
+			let no_id_list = this.settings.player_id_list.value === '';
+			let ids;
+			if (no_id_list) {
+				ids = [];
+			} else {
+				ids = this.settings.player_id_list.value.split(/[\t\n\r,]+/).map(id => id.trim());
+			}
+			for (const player of ChatStats.data.players) {
+				let name_flag = no_name_list;
+				for (const name of names) {
+					for (const player_name of player.names) {
+						if (ChatStats.utilities.similarity(name, player_name) >= cutoff) {
+							name_flag = true;
+							break;
+						}
+					}
+					if (name_flag) break;
+				}
+				let id_flag = no_id_list;
+				if (ids.includes(player.id)) id_flag = true;
+				for (let message of player.messages) {
+					let flag;
+					if (no_name_list) {flag = id_flag}
+					else if (no_id_list) {flag = name_flag}
+					else if (this.settings.or_flag.value) {flag = id_flag || name_flag}
+					else {flag = id_flag && name_flag}
+					message.filters[this.id] = flag;
+				}
+			}
+		});
+	}
+	
+	add_content(settings = this.constructor.types[1].settings) {
+		return this.add(this.constructor.types[1].name, this.constructor.types[1].desc, this.constructor.types[1].color, settings, function() {
+			let string = this.settings.string.value;
+			if (!string) {
+				for (let message of ChatStats.data.messages) {
+					message.filters[this.id] = true;
+				}
+				return;
+			}
+			let re;
+			if (this.settings.is_regex.value) {
+				re = new RegExp(string, this.settings.regex_flags.value);
+			} else {
+				re = new RegExp(string, 'i');
+			}
+			for (let message of ChatStats.data.messages) {
+				message.filters[this.id] = re.test(message.content);
+			}
+		});
+	}
+	
+	add_date(settings = this.constructor.types[2].settings) {
+		return this.add(this.constructor.types[2].name, this.constructor.types[2].desc, this.constructor.types[2].color, settings, function() {
+			let start_date = Date.parse(this.settings.start_date.value);
+			let end_date = Date.parse(this.settings.end_date.value) + 86400000; // Add a day in ms to adjust for inclusivity.
+			for (let message of ChatStats.data.messages) {
+				let message_date = Date.parse(message.time);
+				message.filters[this.id] = message_date >= start_date && message_date <= end_date;
+			}
+		});
 	}
 }
 
 /******************************************************************************
- * Helpers
+ * ChatStats.utilities
  *****************************************************************************/
+ChatStats.utilities = {};
 
-ChatStats.helpers = {};
+ChatStats.utilities.rand_int = function (min, max) {
+	return Math.floor(Math.random() * (max - min)) + min;
+}
 
 /* Credit to overlord1234. https://stackoverflow.com/questions/10473745/compare-strings-javascript-return-of-likely */
-ChatStats.helpers.levenshtein_distance = function (string_1, string_2, ignore_case = true) {
+ChatStats.utilities.levenshtein_distance = function (string_1, string_2, ignore_case = true) {
 	if (ignore_case) {
 		string_1 = string_1.toLowerCase();
 		string_2 = string_2.toLowerCase();
@@ -86,7 +320,7 @@ ChatStats.helpers.levenshtein_distance = function (string_1, string_2, ignore_ca
 }
 
 /* Credit to overlord1234. https://stackoverflow.com/questions/10473745/compare-strings-javascript-return-of-likely */
-ChatStats.helpers.similarity = function (string_1, string_2) {
+ChatStats.utilities.similarity = function (string_1, string_2) {
 	let longer = string_1;
 	let shorter = string_2;
 	if (string_1.length < string_2.length) {
@@ -97,355 +331,303 @@ ChatStats.helpers.similarity = function (string_1, string_2) {
 	if (length == 0) {
 		return 1.0;
 	}
-	return (length - ChatStats.helpers.levenshtein_distance(longer, shorter)) / parseFloat(length);
+	return (length - ChatStats.utilities.levenshtein_distance(longer, shorter)) / parseFloat(length);
 }
 
-ChatStats.helpers.disable_input = function () {
-	let inputs = document.getElementsByTagName('input');
-	for (let input of inputs) {
-		input.disabled = true;
-	}
-	document.getElementById('name_id_operation').disabled = true;
-	document.getElementById('calculate_button').disabled = true;
-	ChatStats.helpers.input_is_disabled = true;
+ChatStats.utilities.drop_handler = function(event, callback) {
+	event.preventDefault();
+	callback(event.dataTransfer.files);
 }
 
-ChatStats.helpers.enable_input = function () {
-	let inputs = document.getElementsByTagName('input');
-	for (let input of inputs) {
-		input.disabled = false;
-	}
-	document.getElementById('name_id_operation').disabled = false;
-	document.getElementById('calculate_button').disabled = false;
-	ChatStats.helpers.input_is_disabled = false;
+ChatStats.utilities.drop_over_handler = function(event) {
+	event.preventDefault();
 }
 
-ChatStats.helpers.input_is_disabled = true;
-ChatStats.helpers.filters_flag = true;
-ChatStats.helpers.name_id_operation = false; // true if AND, false if OR.
+ChatStats.utilities.sort_table = async function() {
+	let output_table = document.getElementById('output');
+	if (output_table.rows.length === 1) return; // Don't sort an empty table.
+	let output_rows = [...output_table.rows];
+	let output_header = output_rows.shift();
+	
+	let sort_ascending = ChatStats.utilities.sort_ascending;
+	let sort_index = [...output_header.children].indexOf(this);
+	if (sort_index === ChatStats.utilities.sort_index) {sort_ascending = -1 * sort_ascending;}
+	else if (sort_index < 6) {sort_ascending = 1;}
+	else {sort_ascending = -1;}
+	ChatStats.utilities.sort_ascending = sort_ascending;
+	ChatStats.utilities.sort_index = sort_index;
+	
+	if (sort_index < 7) {output_rows.sort((a, b) => sort_ascending * (b.cells[sort_index].innerText - a.cells[sort_index].innerText));}
+	else {output_rows.sort((a, b) => sort_ascending * (new Intl.Collator('en').compare(b.cells[sort_index].innerText, a.cells[sort_index].innerText)));}
+	
+	for (const row of output_rows) row.remove();
+	for (const row of output_rows) output.children[0].appendChild(row);
+}
 
 /******************************************************************************
- * Main
+ * ChatStats.data
  *****************************************************************************/
+ChatStats.data = {};
+ChatStats.data.download_count = 0;
 
-ChatStats.known_players = [];
-ChatStats.known_player_ids = [];
-ChatStats.messages = [];
+/******************************************************************************
+ * ChatStats.flags
+ *****************************************************************************/
+ChatStats.flags = {};
+ChatStats.flags.initialized = false;
 
-ChatStats.chat_logs_change = async function () {
-	ChatStats.helpers.disable_input();
+/******************************************************************************
+ * ChatStats.main
+ *****************************************************************************/
+ChatStats.main = {};
+
+ChatStats.main.chat_log_files_change = async function(files) {
+	ChatStats.flags.uploading = true;
+	files ??= document.getElementById('chat_log_files').files;
 	
-	// Reset everything.
-	ChatStats.known_players = [];
-	ChatStats.known_player_ids = [];
-	ChatStats.messages = [];
-	
-	const chat_log_files = document.getElementById('chat_log_files').files;
-	
-	// If there are no files, enable only the chat logs files to upload and return.
-	if (chat_log_files.length === 0) {
-		ChatStats.helpers.filters_flag = true;
-		ChatStats.helpers.input_is_disabled = true;
-		document.getElementById('chat_log_files').disabled = false;
-		return;
-	}
-	
-	for (const file of chat_log_files) {
-		// Skip any file that doesn't look like a chat log.
-		if (!file.name.includes('ChatLog') || !file.type === 'text/plain' || file.size > 10000000) {
-			continue;
+	for (const file of files) {
+		document.getElementById('chat_log_total_file_count').innerText++; // Increment file count.
+		if (!(file.name.includes('ChatLog') || file.name.includes('ChatStatsLog')) || !file.type === 'text/plain') continue; // Skip any files that don't look like PSO2 chat logs.
+		let duplicate_flag = false;
+		for (const old_file of ChatStats.data.files) {
+			if (old_file.lastModified === file.lastModified && old_file.name === file.name && old_file.size === file.size && old_file.type === file.type) {
+				duplicate_flag = true;
+			}
+			if (duplicate_flag) break;
 		}
+		if (duplicate_flag) continue; // Skip any files that are probably duplicates.
+		ChatStats.data.files.push(file);
+		document.getElementById('chat_log_file_count').innerText++; // Increment chat log count.
+		let symbol_flag = file.name.includes('Symbol');
+		let chat_stats_flag = file.name.includes('ChatStatsLog');
 		
-		let message_array = await file.text()
-		message_array = message_array.replace(/\r/g,'').split('\n')
-		for (const message_original of message_array) {
-			const message_split = message_original.split('\t');
+		// Convert the chat log to messages objects. Creat known player list.
+		let file_lines = (await file.text()).replace(/\r/g, '').split('\n');
+		for (const line of file_lines) {
+			const message_split = line.split('\t');
+			if (!message_split?.[0] || !message_split?.[1] || !message_split?.[2] || !message_split?.[3] || !message_split?.[4] || !message_split?.[5]) continue; // Skip any messages that are missing data.
+			let message = new ChatStats.classes.Message(new Date(message_split[0]).toISOString(), (message_split[2] === 'CHANNEL') ? 'GROUP' : message_split[2], message_split[3], message_split[4], message_split[5], (chat_stats_flag && message_split.hasOwnProperty(6)) ? message_split[6] : symbol_flag);
+			ChatStats.data.messages.push(message);
 			
-			// Skip any messages that are missing data.
-			if (!message_split?.[0] || !message_split?.[1] || !message_split?.[2] || !message_split?.[3] || !message_split?.[4] || !message_split?.[5]) {
-				continue;
+			let player;
+			if (!ChatStats.data.player_ids.includes(message.player_id)) {
+				ChatStats.data.player_ids.push(message.player_id);
+				player = new ChatStats.classes.Player(message.player_id);
+				ChatStats.data.players.push(player);
 			}
-			
-			// Create a new Message from the message and push it to the array of all messages.
-			let message = new ChatStats.classes.Message(message_split[0], message_split[2], message_split[3], message_split[4], message_split[5]);
-			ChatStats.messages.push(message);
-			
-			// If the message belongs to an unknown player create a new Player for them and push them to the array of known players as well as their id to the known player ids arrays.
-			if (!ChatStats.known_player_ids.includes(message.player_id)) {
-				ChatStats.known_player_ids.push(message.player_id);
-				ChatStats.known_players.push(new ChatStats.classes.Player(message.player_id));
-			}
-			
-			// Push the message to the player's array of messages and update their known names.
-			let player = ChatStats.known_players.find((player) => player.id === message.player_id)
+			player ??= ChatStats.data.players.find(player => player.id === message.player_id);
 			player.messages.push(message);
-			if (!player.names.includes(message.name)) {
-				player.names.push(message.name);
-				player.names.sort();
-			}
+			if (!player.names.includes(message.name)) player.names.push(message.name);
 		}
 	}
 	
-	// If things have been done in the wrong order, run the filters now.
-	if (ChatStats.helpers.filters_flag) {
-		await ChatStats.id_filter_change();
-		await ChatStats.name_filter_change();
-		ChatStats.message_filter_change();
-		ChatStats.date_filter_change();
-		
+	for (const player of ChatStats.data.players) player.names.sort();
+	
+	// Remove duplicate messages.
+	ChatStats.data.messages.sort((message_1, message_2) => Date.parse(message_1.time) - Date.parse(message_2.time));
+	let length = ChatStats.data.messages.length;
+	for (let i = length - 1; i > 0; i--) {
+		if (ChatStats.classes.Message.compare(ChatStats.data.messages[i], ChatStats.data.messages[i-1])) {
+			ChatStats.data.messages.splice(i, 1);
+		}
 	}
 	
-	ChatStats.helpers.enable_input();
+	ChatStats.flags.uploading = false;
 }
 
-ChatStats.id_filter_change = async function() {
-	ChatStats.helpers.disable_input();
-	
-	let id_filter = (await document.getElementById('id_filter_file').files[0]?.text() ?? '');
-	if (id_filter === '') {
-		for (let message of ChatStats.messages) {
-			message.filter.id = true;
-		}
-		ChatStats.helpers.enable_input();
+ChatStats.main.add_filter = function() {
+	document.getElementById('filter_dropdown').classList.toggle('show_dropdown');
+}
+
+ChatStats.main.update_output = function() {
+	if (ChatStats.flags.uploading) {
+		setTimeout(ChatStats.main.update_output, 50);
 		return;
 	}
-	id_filter = id_filter.split(/[\t\n\r,]+/);
-	console.log(id_filter);
-	for (let player of ChatStats.known_players) {
-		let flag = false;
-		if (id_filter.includes(player.id)) {
-			flag = true;
-		}
-		for (let message of player.messages) {
-			message.filter.id = flag;
-		}
+	
+	for (const filter of ChatStats.data.filters.active) {
+		filter.apply();
 	}
 	
-	ChatStats.helpers.enable_input();
-}
-
-ChatStats.name_filter_change = async function() {
-	ChatStats.helpers.disable_input();
-	
-	let name_filter = (await document.getElementById('name_filter_file').files[0]?.text() ?? '');
-	if (name_filter === '') {
-		for (let message of ChatStats.messages) {
-			message.filter.name = true;
-		}
-		ChatStats.helpers.enable_input();
-		return;
-	}
-	name_filter = name_filter.split(/[\t\n\r,]+/);
-	let filter_cutoff = document.getElementById('name_filter_cutoff').value / 100;
-	for (let player of ChatStats.known_players) {
-		let flag = false;
-		for (const name of name_filter) {
-			for (const player_name of player.names) {
-				if (ChatStats.helpers.similarity(name, player_name) >= filter_cutoff) {
-					flag = true;
-					break;
-				}
-			}
-			if (flag) break;
-		}
-		for (let message of player.messages) {
-			message.filter.name = flag;
-		}
-	}
-	
-	ChatStats.helpers.enable_input();
-}
-
-ChatStats.name_id_operation_change = function () {
-	ChatStats.helpers.disable_input();
-	
-	let setting = document.getElementById('name_id_operation').value;
-	if (setting === 'and') {
-		ChatStats.helpers.name_id_operation = true;
-	} else {
-		ChatStats.helpers.name_id_operation = false;
-	}
-	
-	ChatStats.helpers.enable_input();
-}
-
-ChatStats.message_filter_change = function() {
-	ChatStats.helpers.disable_input();
-	
-	let message_filter = document.getElementById('filter_message').value;
-	if (message_filter === '') {
-		for (let message of ChatStats.messages) {
-			message.filter.content = true;
-		}
-		ChatStats.helpers.enable_input();
-		return;
-	} else if (/^\/.*\/[gimsuy]*$/.test(message_filter)) {
-		message_filter = new RegExp(/(?<=^\/).*(?=\/[gimsuy]*$)/.exec(message_filter)[0], /(?<=^\/.*\/)[gimsuy]*$/g.exec(message_filter)[0])
-	} else {
-		message_filter = new RegExp(message_filter, 'i');
-	}
-	
-	for (let message of ChatStats.messages) {
-		message.filter.content = message_filter.test(message.content);
-	}
-	
-	ChatStats.helpers.enable_input();
-}
-
-ChatStats.date_filter_change = function() {
-	ChatStats.helpers.disable_input();
-	
-	let date_start = Date.parse(document.getElementById('date_start').value);
-	let date_end = Date.parse(document.getElementById('date_end').value) + 86400000; // Add a day in ms to adjust for inclusivity.
-	for (let message of ChatStats.messages) {
-		let date_message = Date.parse(message.time);
-		if (date_message <= date_start || date_message >= date_end) {
-			message.filter.date = false;
-		} else {
-			message.filter.date = true;
-		}
-	}
-	
-	ChatStats.helpers.enable_input();
-}
-
-ChatStats.display = function() {
-	ChatStats.helpers.disable_input();
-	
-	let players = ChatStats.known_players;
-	
-	// Reset the Output Display
-	let output = document.getElementById('output').children[0];
-	for (let i = output.children.length - 1; i > 0; i--) {
-		output.children[i].remove();
-	}
-	
-	// Populate the Output Display
-	for (const player of players) {
-		
-		// Count a player's messages.
+	let output_table = document.getElementById('output');
+	let output_rows = [...output_table.rows];
+	output_rows.shift();
+	for (const row of output_rows) row.remove();
+	for (const player of ChatStats.data.players) {
 		let message_count = {
 			TOTAL: 0,
 			PUBLIC: 0,
 			PARTY: 0,
 			GUILD: 0,
 			REPLY: 0,
-			GROUP: 0
+			GROUP: 0,
 		}
-		
 		for (const message of player.messages) {
-			// Don't count filtered messages.
-			if (!message.filtered) continue;
-			
+			if (!message.passed_filters) continue; // Don't count filtered messages.
 			message_count.TOTAL++;
 			message_count[message.chat]++;
 		}
-		
-		// If a player's total filtered message count is 0. Don't add it to the output.
-		if (message_count.TOTAL === 0) continue;
-		
-		// Populate a player's row.
-		let newRow = document.createElement('tr');
+		if (message_count.TOTAL === 0) continue; // If a player's total filtered message count is 0, don't add them to the output.
+		let row = document.createElement('tr');
 		for (const chat of ['TOTAL', 'PUBLIC', 'PARTY', 'GUILD', 'REPLY', 'GROUP']) {
-			let newCell = document.createElement('td');
-			newCell.innerText = message_count[chat];
-			newRow.appendChild(newCell);
+			let cell = document.createElement('td');
+			cell.innerText = message_count[chat];
+			row.appendChild(cell);
 		}
-		let player_id = document.createElement('td');
-		player_id.innerText = player.id;
-		newRow.appendChild(player_id);
-		let player_names = document.createElement('td');
-		player_names.innerText = player.names.join(', ');
-		newRow.appendChild(player_names);
-		
-		output.appendChild(newRow);
+		let player_id_cell = document.createElement('td');
+		player_id_cell.innerText = player.id;
+		row.appendChild(player_id_cell);
+		let player_names_cell = document.createElement('td');
+		player_names_cell.innerText = player.names.join(', ');
+		row.appendChild(player_names_cell);
+		output.children[0].appendChild(row);
 	}
 	
-	ChatStats.sort.ascending = 1;
-	ChatStats.sort.column_index = 7;
-	
-	// Create a downloadable version of the output.
-	let csv_content = 'data:text/csv;charset=utf-9,';
-	[...output.rows].forEach(row => {
-		let temp_row = [...row.cells].map(cell => cell.innerText);
-		csv_content += '"' + temp_row.join('","') + '"\r\n';
-	});
-	let encoded_csv = encodeURI(csv_content);
-	let download_link = document.getElementById('download');
-	download_link.href = encoded_csv;
-	download_link.download = 'ChatLogStatistics' + new Date().toISOString().slice(0,10).replaceAll('-','') + '.csv';
-	document.getElementById('download_button').disabled = false;
-	
-	ChatStats.helpers.enable_input();
+	ChatStats.utilities.sort_ascending = 1;
+	ChatStats.utilities.sort_index = 7;
 }
 
-/******************************************************************************
- * Sorting
- *****************************************************************************/
-
-ChatStats.sort = {};
-
-ChatStats.sort.ascending = 1;
-ChatStats.sort.column_index = 7;
-
-ChatStats.sort.output = function() {
-	if (ChatStats.helpers.input_is_disabled) {
+ChatStats.main.download_output = function(e) {
+	if (ChatStats.flags.uploading) {
+		setTimeout(() => ChatStats.main.download_output(e), 50);
 		return;
 	}
 	
-	ChatStats.helpers.disable_input();
-	
-	let output = document.getElementById('output').children[0];
-	
-	// Figure out the sort direction and the index of the column to sort by.
-	let ascending = ChatStats.sort.ascending;
-	let column_index = [...output.rows[0].children].indexOf(this);
-	if (ChatStats.sort.column_index === column_index) {
-		ascending = -1 * ascending;
-	} else if (column_index < 6) {
-		ascending = 1;
-	} else {
-		ascending = -1;
+	let csv_content = '';
+	let name = 'ChatStats';
+	let file_type;
+	if (e.ctrlKey) { // If ctrl is held down as the button is clicked, download the list of all messages.
+		if (ChatStats.data.messages.length === 0) return; // Don't download when there are no messasges.
+		ChatStats.data.messages.forEach(message => {
+			csv_content += [message.time, '1', message.chat, message.player_id, message.name, message.content, message.is_symbol].join('\t') + '\r\n';
+		});
+		name += 'Log';
+		file_type = '.txt';
+	} else { // If ctrl is not held down as the button is clicked, download the output table.
+		let output_table = document.getElementById('output');
+		if (output_table.rows.length === 1) return; // Don't download an empty table.
+		[...output_table.rows].forEach(row => {
+			csv_content += '"' + [...row.cells].map(cell => cell.innerText).join('","') + '"\r\n';
+		});
+		file_type = '.csv';
 	}
-	ChatStats.sort.ascending = ascending;
-	ChatStats.sort.column_index = column_index;
-	
-	// Sort the rows.
-	let rows = [...output.rows].slice(1, output.length);
-	if (column_index < 7) {
-		rows.sort((a, b) => ascending * (b.cells[column_index].innerText - a.cells[column_index].innerText));
-	} else {
-		rows.sort((a, b) => ascending * (new Intl.Collator('en').compare(b.cells[column_index].innerText, a.cells[column_index].innerText)));
-	}
-	
-	// Reset the Output Display
-	for (let i = output.children.length - 1; i > 0; i--) {
-		output.children[i].remove();
-	}
-	
-	// Reinsert the rows, now sorted.
-	for (let i = 0; i < rows.length; i++) {
-		output.appendChild(rows[i]);
+	let encoded_content = encodeURIComponent(csv_content);
+	let download = document.createElement('a');
+	download.href = 'data:text/csv;charset=utf-9,' + encoded_content;
+	download.download = name + new Date().toISOString().slice(0,10).replaceAll('-','') + '-' + ChatStats.data.download_count.toLocaleString('en-US', {minimumIntegerDigits: 2, useGrouping: false}) + file_type;
+	download.click();
+	ChatStats.data.download_count++;
+}
+
+ChatStats.main.reset_all = function() {
+	if (ChatStats.flags.uploading) {
+		setTimeout(ChatStats.main.reset_all, 50);
+		return;
 	}
 	
-	ChatStats.helpers.enable_input();
+	[...document.getElementsByTagName('input')].forEach(element => {element.disabled = true;}); // Disable Input.
+	
+	document.getElementById('chat_log_files').value = '';
+	document.getElementById('chat_log_file_count').innerText = 0;
+	document.getElementById('chat_log_total_file_count').innerText = 0;
+	
+	let output_table = document.getElementById('output');
+	let output_rows = [...output_table.rows];
+	output_rows.shift();
+	for (const row of output_rows) row.remove();
+	
+	for (let filter of ChatStats.data.filters.active || []) {
+		filter.remove_element();
+	}
+	
+	ChatStats.init();
+	
+	[...document.getElementsByTagName('input')].forEach(element => {element.disabled = false;}); // Enable Input.
 }
 
 /******************************************************************************
- * On Load Event
+ * ChatStats.init
  *****************************************************************************/
-
-window.addEventListener('load', () => {
-	let today = new Date().toISOString().slice(0,10);
-	let date_start = new Date();
-	date_start.setDate(date_start.getDate()-28)
-	date_start = date_start.toISOString().slice(0,10);
-	document.getElementById('date_end').max = today;
-	document.getElementById('date_start').max = today;
-	document.getElementById('date_end').value = today;
-	document.getElementById('date_start').value = date_start;
+ChatStats.init = function() {	
+	/******************************************************************************
+	 * ChatStats.utilities
+	 *****************************************************************************/
+	ChatStats.utilities.sort_ascending = 1;
+	ChatStats.utilities.sort_index = 7;
 	
-	for (let cell of document.getElementById('output').rows[0].cells) {
-		cell.addEventListener('click', ChatStats.sort.output);
+	/******************************************************************************
+	 * ChatStats.data
+	 *****************************************************************************/
+	ChatStats.data.filters = [];
+	ChatStats.data.players = [];
+	ChatStats.data.player_ids = [];
+	ChatStats.data.messages = [];
+	ChatStats.data.files = [];
+	ChatStats.data.filters = new ChatStats.classes.Filters();
+	
+	/******************************************************************************
+	 * ChatStats.flags
+	 *****************************************************************************/	
+	ChatStats.flags.uploading = false;
+	
+	/******************************************************************************
+	 * Event Listeners
+	 *****************************************************************************/
+	if (!ChatStats.flags.initialized) {
+		window.removeEventListener('load', ChatStats.init);
+		
+		for (const filter_type of ChatStats.classes.Filters.types) {
+			let item = document.createElement('input');
+			item.type = 'button';
+			item.value = filter_type.name;
+			item.title = filter_type.desc;
+			item.onclick = () => {
+				let f = ChatStats.data.filters[filter_type.func]();
+				setTimeout(() => {
+					document.getElementById('filter_edit' + f.id).classList.add('show_edit');
+				}, 10);
+			}
+			document.getElementById('filter_dropdown').appendChild(item);
+		}
+		window.addEventListener('click', (event) => {
+			if (!event.target.matches('.dropdown_button')) {
+				let dropdowns = document.getElementsByClassName('dropdown_content');
+				for (let dropdown of dropdowns) {
+					if (dropdown.classList.contains('show_dropdown')) dropdown.classList.remove('show_dropdown');
+				}
+			}
+			let flag = false;
+			for (const node of event.composedPath()) {
+				if (node == document) break;
+				if (node.matches('.filter_edit')) {
+					flag = true;
+					break;
+				}
+			}
+			flag &= !event.target.matches('.edit_save_button');
+			if (!flag) {
+				let id = event.target.id.slice(6);
+				let filter_edits = document.getElementsByClassName('filter_edit');
+				for (let filter_edit of filter_edits) {
+					if (filter_edit.classList.contains('show_edit') && filter_edit.id.slice(11) !== id) {filter_edit.classList.remove('show_edit')}
+				}
+			}
+		});
+		
+		for (let cell of document.getElementById('output').rows[0].cells) {
+			cell.addEventListener('click', ChatStats.utilities.sort_table);
+		}
+		
+		window.addEventListener('keydown', (e) => {
+			if (e.ctrlKey) document.getElementById('download_output').classList.add('ctrl_button');
+		});
+		window.addEventListener('keyup', (e) => {
+			if (!e.ctrlKey) document.getElementById('download_output').classList.remove('ctrl_button');
+		});
+		
+		ChatStats.flags.initialized = true;
+		console.log("Howdy! - Nel");
 	}
-});
+}
+
+window.addEventListener('load', ChatStats.init);
