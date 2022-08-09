@@ -60,17 +60,48 @@ ChatStats.classes.Filter = class Filter {
 			}
 		}
 		this.apply = apply.bind(this);
+		
+		let div = document.createElement('div');
 		let filter_div = document.createElement('div');
 		filter_div.innerText = type;
 		filter_div.classList.add('filter');
 		filter_div.id = 'filter' + this.id;
 		filter_div.style.backgroundColor = color;
 		filter_div.title = desc;
-		document.getElementById('filter_bar').appendChild(filter_div);
+		div.appendChild(filter_div);
+		
+		let filter_edit_div = document.createElement('div');
+		filter_edit_div.classList.add('filter_edit');
+		filter_edit_div.id = 'filter_edit' + this.id;
+		let edit_desc = document.createElement('p');
+		edit_desc.innerText = desc;
+		filter_edit_div.appendChild(edit_desc);
+		filter_edit_div.appendChild(document.createElement('hr'));
+		// Add the settings.
+		filter_edit_div.appendChild(document.createElement('hr'));
+		let edit_save = document.createElement('input');
+		edit_save.type = 'button';
+		edit_save.value = 'Save';
+		edit_save.classList.add('edit_save_button');
+		// edit_save.onclick = 
+		filter_edit_div.appendChild(edit_save);
+		let edit_remove = document.createElement('input');
+		edit_remove.type = 'button';
+		edit_remove.value = 'Remove';
+		edit_remove.classList.add('edit_remove_button');
+		edit_remove.onclick = () => ChatStats.data.filters.remove(this);
+		filter_edit_div.appendChild(edit_remove);
+		div.appendChild(filter_edit_div);
+		
+		filter_div.onclick = () => {
+			filter_edit_div.classList.toggle('show_edit');
+			// Update values of settings in the filter_edit_div.
+		}
+		document.getElementById('filter_bar').appendChild(div);
 	}
 	
 	remove_element() {
-		document.getElementById('filter' + this.id).remove();
+		document.getElementById('filter' + this.id).parentElement.remove();
 		return this;
 	}
 }
@@ -137,7 +168,7 @@ ChatStats.classes.Filters = class Filters {
 	];
 	
 	add_nameId(settings = this.constructor.types[0].settings) {
-		this.add(this.constructor.types[0].name, this.constructor.types[0].desc, this.constructor.types[0].color, settings, function() {
+		return this.add(this.constructor.types[0].name, this.constructor.types[0].desc, this.constructor.types[0].color, settings, function() {
 			let no_name_list = this.settings.name_list.value === '';
 			let names;
 			if (no_name_list) {
@@ -179,7 +210,7 @@ ChatStats.classes.Filters = class Filters {
 	}
 	
 	add_content(settings = this.constructor.types[1].settings) {
-		this.add(this.constructor.types[1].name, this.constructor.types[1].desc, this.constructor.types[1].color, settings, function() {
+		return this.add(this.constructor.types[1].name, this.constructor.types[1].desc, this.constructor.types[1].color, settings, function() {
 			let string = this.settings.string.value;
 			if (!string) {
 				for (let message of ChatStats.data.messages) {
@@ -200,7 +231,7 @@ ChatStats.classes.Filters = class Filters {
 	}
 	
 	add_date(settings = this.constructor.types[2].settings) {
-		this.add(this.constructor.types[2].name, this.constructor.types[2].desc, this.constructor.types[2].color, settings, function() {
+		return this.add(this.constructor.types[2].name, this.constructor.types[2].desc, this.constructor.types[2].color, settings, function() {
 			let start_date = Date.parse(this.settings.start_date.value);
 			let end_date = Date.parse(this.settings.end_date.value) + 86400000; // Add a day in ms to adjust for inclusivity.
 			for (let message of ChatStats.data.messages) {
@@ -368,7 +399,7 @@ ChatStats.main.chat_log_files_change = async function(files) {
 }
 
 ChatStats.main.add_filter = function() {
-	document.getElementById('filter_dropdown').classList.toggle('show');
+	document.getElementById('filter_dropdown').classList.toggle('show_dropdown');
 }
 
 ChatStats.main.update_output = function() {
@@ -513,14 +544,35 @@ ChatStats.init = function() {
 			item.type = 'button';
 			item.value = filter_type.name;
 			item.title = filter_type.desc;
-			item.onclick = () => ChatStats.data.filters[filter_type.func]();
+			item.onclick = () => {
+				let f = ChatStats.data.filters[filter_type.func]();
+				setTimeout(() => {
+					document.getElementById('filter_edit' + f.id).classList.add('show_edit');
+				}, 10);
+			}
 			document.getElementById('filter_dropdown').appendChild(item);
 		}
-		window.addEventListener('click', (e) => {
+		window.addEventListener('click', (event) => {
 			if (!event.target.matches('.dropdown_button')) {
 				let dropdowns = document.getElementsByClassName('dropdown_content');
 				for (let dropdown of dropdowns) {
-					if (dropdown.classList.contains('show')) dropdown.classList.remove('show');
+					if (dropdown.classList.contains('show_dropdown')) dropdown.classList.remove('show_dropdown');
+				}
+			}
+			let flag = false;
+			for (const node of event.composedPath()) {
+				if (node == document) break;
+				if (node.matches('.filter_edit')) {
+					flag = true;
+					break;
+				}
+			}
+			flag &= !event.target.matches('.edit_save_button');
+			if (!flag) {
+				let id = event.target.id.slice(6);
+				let filter_edits = document.getElementsByClassName('filter_edit');
+				for (let filter_edit of filter_edits) {
+					if (filter_edit.classList.contains('show_edit') && filter_edit.id.slice(11) !== id) {filter_edit.classList.remove('show_edit')}
 				}
 			}
 		});
