@@ -19,6 +19,14 @@ ChatStats.classes.Player = class Player {
 		this.messages = [];
 		this.names = [];
 	}
+	
+	count_messages_with(name) {
+		let result = 0;
+		for (const message of this.messages) {
+			if (message.name === name) result++;
+		}
+		return result;
+	}
 }
 
 ChatStats.classes.Message = class Message {
@@ -421,7 +429,17 @@ ChatStats.main.chat_log_files_change = async function(files) {
 		}
 	}
 	
-	for (const player of ChatStats.data.players) player.names.sort();
+	for (const player of ChatStats.data.players) {
+		let mapped = player.names.map((name, i) => {
+			return {i, value: player.count_messages_with(name)};
+		});
+		mapped.sort((a, b) => {
+			if (a.value > b.value) {return 1;}
+			else if (a.value > b.value) {return -1;}
+			else {return 0;}
+		});
+		player.names = mapped.map((v) => player.names[v.i]);
+	}
 	
 	// Remove duplicate messages.
 	ChatStats.data.messages.sort((message_1, message_2) => Date.parse(message_1.time) - Date.parse(message_2.time));
