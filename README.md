@@ -39,7 +39,7 @@ Filter messages by the Character or Player Name or the Player ID of the player w
 
 ### Content Filter
 
-![Content Filter](images/content filter)
+![Content Filter](images/content filter.png)
 
 Filter messages by their content.
 
@@ -49,7 +49,7 @@ Filter messages by their content.
 
 ### Date Filter
 
-![Date Filter](images/date filter)
+![Date Filter](images/date filter.png)
 
 - Start Date: A date. Only messages sent on or after this date will pass the filter.
 - End Date: A date. Only messages sent on or before this date will pass the filter.
