@@ -11,17 +11,17 @@ Visit the site at: https://elekester.github.io/PSO2-Chat-Log-Statistics/
 
 ## Uploading Chat Logs
 
-![Chat Log Upload Area](images/upload area.png)
+![Chat Log Upload Area](images/upload%20area.png)
 
 Towards the top of the page you will see a large box with a choose file dialog option. You can upload your chat log files either by dragging theme here or using the dialog option. You can find Phantasy Star Online 2's chat log files in the log and log_ngs folders wherever your PSO2 documents folder is. If you have installed PSO2 through steam this will be located in C:\Users\USERNAME\Documents\SEGA\PHANTASYSTARONLINE2_NA_STEAM.
 
-![File Explorer](images/file select.png)
+![File Explorer](images/file%20select.png)
 
 You can upload any of the files located here and the program simply ignores any file that isn't a (symbol) chat log file.
 
 ## Filtering the Chat Logs
 
-![Filter Area](images/filter area.png)
+![Filter Area](images/%20area.png)
 
 By default, all the data found in the uploaded files will be present in the statistics. If you wish to filter out some of the messages you can add a filter here by clicking on the plus. Only messages that pass all the filters will be present in the statistics.
 
@@ -29,7 +29,7 @@ At the moment there are three filters available.
 
 ### Name/ID Filter
 
-![Name/ID Filter](images/name ID filter.png)
+![Name/ID Filter](images/name%20ID%20filter.png)
 
 Filter messages by the Character or Player Name or the Player ID of the player who sent the message.
 
@@ -40,7 +40,7 @@ Filter messages by the Character or Player Name or the Player ID of the player w
 
 ### Content Filter
 
-![Content Filter](images/content filter.png)
+![Content Filter](images/content%20filter.png)
 
 Filter messages by their content.
 
@@ -50,14 +50,14 @@ Filter messages by their content.
 
 ### Date Filter
 
-![Date Filter](images/date filter.png)
+![Date Filter](images/date%20filter.png)
 
 - Start Date: A date. Only messages sent on or after this date will pass the filter.
 - End Date: A date. Only messages sent on or before this date will pass the filter.
 
 ## Output
 
-![Output Example](images/output area.png)
+![Output Example](images/output%20area.png)
 
 Once you've uploaded your chat logs and selected your filters, hit calculate to display your statistics.
 
