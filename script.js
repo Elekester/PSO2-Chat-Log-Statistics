@@ -206,7 +206,7 @@ ChatStats.classes.Filters = class Filters {
 			desc: 'Filter messages by their date.',
 			color: '#e9aaaa',
 			settings: {
-				start_date: {value: '2012-07-04', type: 'date', min: '2012-07-04', max: new Date().toLocaleString('sv').slice(0, 10), label: 'Start Date: '},
+				start_date: {value: '2020-04-14', type: 'date', min: '2012-07-04', max: new Date().toLocaleString('sv').slice(0, 10), label: 'Start Date: '},
 				end_date: {value: new Date().toLocaleString('sv').slice(0, 10), type: 'date', min: '2012-07-04', max: new Date().toLocaleString('sv').slice(0, 10), label: 'End Date: '}
 			}
 		}
