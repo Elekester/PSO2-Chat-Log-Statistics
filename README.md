@@ -23,7 +23,7 @@ You can upload any of the files located here and the program simply ignores any 
 
 ![Filter Area](images/filter%20area.png)
 
-By default, all the data found in the uploaded files will be present in the statistics. If you wish to filter out some of the messages you can add a filter here by clicking on the plus. Only messages that pass all the filters will be present in the statistics.
+By default, all the data found in the uploaded files will be present in the statistics. If you wish to filter out some of the messages you can add a filter here by clicking on the plus. Only messages that pass all the filters will be present in the statistics. Clicking on a filter's label will reopen that filter's settings.
 
 At the moment there are three filters available.
 
