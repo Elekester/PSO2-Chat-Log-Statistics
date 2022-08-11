@@ -8,11 +8,59 @@ Visit the site at: https://elekester.github.io/PSO2-Chat-Log-Statistics/
 
 
 
-## Output Table
+## Uploading Chat Logs
+
+![Chat Log Upload Area](images/upload area.png)
+
+Towards the top of the page you will see a large box with a choose file dialog option. You can upload your chat log files either by dragging theme here or using the dialog option. You can find Phantasy Star Online 2's chat log files in the log and log_ngs folders wherever your PSO2 documents folder is. If you have installed PSO2 through steam this will be located in C:\Users\USERNAME\Documents\SEGA\PHANTASYSTARONLINE2_NA_STEAM.
+
+![File Explorer](images/file select.png)
+
+You can upload any of the files located here and the program simply ignores any file that isn't a (symbol) chat log file.
+
+## Filtering the Chat Logs
+
+![Filter Area](images/filter area.png)
+
+By default, all the data found in the uploaded files will be present in the statistics. If you wish to filter out some of the messages you can add a filter here by clicking on the plus. Only messages that pass all the filters will be present in the statistics.
+
+At the moment there are three filters available.
+
+### Name/ID Filter
+
+![Name/ID Filter](images/name ID filter.png)
+
+Filter messages by the Character or Player Name or the Player ID of the player who sent the message.
+
+- List of Names: A comma or tab separated list of player and/or character names. Only messages sent by a player with one of these names will pass the filter.
+- Name Match Threshold: A number from 0 to 100 which allows for names to match any name that is close to a name on the list. The smaller the number put, the closer the two names have to be. It's a good idea to put a small number here to allow for spelling errors.
+- List of Player IDs: A comma or tab separated list of Player IDs. Only messages sent by a player with one of these IDs will pass the filter.
+- Match Name OR ID: If checked messages will pass the filter if it passes either the name or ID filter. If unchecked a message will only pass the filter if it passes the name and ID filter.
+
+### Content Filter
+
+![Content Filter](images/content filter)
+
+Filter messages by their content.
+
+- Message Text: A string of text. Only messages that include the string in their content will pass the filter.
+- Is RegEx: If checked the above Message Text will be treated as a regular expression and only those messages that match the regex will pass the filter.
+- RegEx Flags: If the message text is a regular expression, these flags will be applied to it.
+
+### Date Filter
+
+![Date Filter](images/date filter)
+
+- Start Date: A date. Only messages sent on or after this date will pass the filter.
+- End Date: A date. Only messages sent on or before this date will pass the filter.
+
+## Output
+
+![Output Example](images/output area.png)
+
+Once you've uploaded your chat logs and selected your filters, hit calculate to display your statistics.
 
 Your data will be displayed in a table like the example below. Clicking on a header will sort the table by that column. Clicking it again will reverse the sort.
-
-![Output Example](images/output.png)
 
 The column names are derived from the internal names for each of the chats.
 
@@ -23,4 +71,10 @@ The column names are derived from the internal names for each of the chats.
 * The Reply column displays the Whisper Message Count for each player.
 * The Group column displays the Group Message Count for each player.
 * The Player ID column displays the unique number associated to each player's account.
-* The Names column displays the Player Names and Character Names associated to each player's account.
+* The Names column displays the Player Names and Character Names associated to each player's account. The names are sorted by frequency, from most common to least.
+
+### Downloading the Statistics
+
+You can download the displayed table as a csv file by clicking the download button.
+
+You may also download a single combined chat log by ctrl-clicking the download button.
