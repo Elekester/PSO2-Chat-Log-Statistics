@@ -1,4 +1,5 @@
 ![Release v1.1.1](https://img.shields.io/github/v/release/elekester/pso2-chat-log-statistics)
+![Test](images/NGSUIMenuChatCommandOutline.png)
 
 Get some basic statistics from your PSO2 chat log files, including a player's message counts for each chat.
 
