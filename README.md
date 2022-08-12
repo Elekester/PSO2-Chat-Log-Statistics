@@ -7,8 +7,6 @@ Visit the site at: https://elekester.github.io/PSO2-Chat-Log-Statistics/
 
 # PSO2 Chat Log Statistics User Manual
 
-
-
 ## Uploading Chat Logs
 
 ![Chat Log Upload Area](images/upload%20area.png)
